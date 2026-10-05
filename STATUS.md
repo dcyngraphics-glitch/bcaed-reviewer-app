@@ -55,8 +55,16 @@ against. Nothing was copied from another reviewer.
 ### Foundation
 - React 19 + TypeScript + Vite + Tailwind v4, strict mode, no `any`.
 - Design system: Button, Card, Badge, ProgressRing, Avatar, Toast, all tested.
-- Layout: Header (with sign-out), Sidebar (plan's student nav + live mistake
-  count), Footer, MainLayout as a real layout route with `<Outlet />`.
+- Layout: Header (sign-out + a mobile navigation drawer), Sidebar (plan's
+  student nav + live mistake count), Footer, MainLayout as a real layout route
+  with `<Outlet />`.
+- **Mobile navigation.** The sidebar is hidden below `md`, so the Header carries
+  a drawer with every destination, Escape-to-close and auto-close on navigation.
+  Without it the app had no navigation at all on the Android target the plan
+  names.
+- **Error boundary** on the session-bearing routes (practice, mock exams,
+  diagnostic). It shows the error message, says progress is safe, and offers a
+  retry — instead of the blank page this app produced twice.
 - Git hygiene: `node_modules` untracked (was 7,412 committed files), `.gitignore`
   in place.
 
@@ -150,9 +158,11 @@ the single seam for real authentication.
 
 ## Known limitations
 
-- **Test typing quirk.** `userEvent.type` drops characters on controlled React
-  inputs under happy-dom. Use `typeInto` from `src/test/interact.ts`, which uses
-  `fireEvent.change`. Documented at the helper.
+- **Test interaction quirks.** Two happy-dom behaviours fail silently and are
+  both worked around in `src/test/interact.ts`: `userEvent.type` drops
+  characters on controlled inputs (use `typeInto`), and native
+  `element.click()` never reaches a React `onClick` (use `clickElement`).
+  A test that clicks via `.click()` can pass while asserting nothing.
 - **Bundle size.** One 528 kB chunk (161 kB gzipped). Fine for a PWA on a
   decent connection; code-splitting the admin and mock-exam routes is the easy
   win when it matters.
@@ -161,6 +171,9 @@ the single seam for real authentication.
   hidden.
 - **Coverage on the progress page is topic-reach, not question-reach**, because
   sessions store per-topic counts rather than every question id.
+- **The error boundary does not catch event-handler or async errors.** React
+  boundaries only catch render-time throws; a failure inside an `onClick` or a
+  promise still needs its own handling.
 
 ---
 
