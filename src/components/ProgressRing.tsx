@@ -28,7 +28,7 @@ const ProgressRing = ({
   size = 40,
   strokeWidth = 8,
   color = 'stroke-primary-600',
-  trackColor = 'stroke-gray-200',
+  trackColor = 'stroke-neutral-200',
   labelColor = 'text-primary-600',
   showLabel = true,
   className = '',
@@ -57,6 +57,9 @@ const ProgressRing = ({
       aria-valuemin={0}
       aria-valuemax={safeMax}
       aria-label={label}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
       {...props}
     >
       <svg
