@@ -123,8 +123,8 @@ const SessionPlayer = ({
   if (total === 0) {
     return (
       <Card className="p-8 text-center">
-        <h2 className="text-xl font-bold mb-2 text-gray-800">No questions available</h2>
-        <p className="text-gray-600">
+        <h2 className="text-xl font-bold mb-2 text-foreground">No questions available</h2>
+        <p className="text-muted-foreground">
           Nothing matches this selection yet. Try another subject or topic.
         </p>
         {onExit ? (
@@ -143,16 +143,20 @@ const SessionPlayer = ({
   return (
     <div className="space-y-4">
       {/* Session header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-wrap items-center justify-between gap-3"
+      >
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{title}</h1>
-          {subtitle ? <p className="text-sm text-gray-500">{subtitle}</p> : null}
+          <h1 className="text-xl font-bold text-foreground">{title}</h1>
+          {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
         </div>
 
         <div className="flex items-center gap-4">
           {remaining !== null ? (
             <div className="text-right">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Time left</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Time left</p>
               <p
                 className={`text-lg font-semibold tabular-nums ${timerColourClass(
                   timeLimitSeconds,
@@ -171,49 +175,59 @@ const SessionPlayer = ({
             </Button>
           ) : null}
         </div>
-      </div>
+      </motion.div>
 
       {/* Progress */}
       <div>
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
+        <div className="flex justify-between text-xs text-muted-foreground mb-1">
           <span>
             Question {safeIndex + 1} of {total}
           </span>
           <span>{answeredCount} answered</span>
         </div>
-        <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className="h-1.5 bg-primary-600 rounded-full transition-all duration-300"
-            style={{ width: `${((safeIndex + 1) / total) * 100}%` }}
+        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+          <motion.div
+            className="h-1.5 bg-primary-600 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${((safeIndex + 1) / total) * 100}%` }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
           />
         </div>
       </div>
 
       {/* Question */}
-      <Card className="p-6">
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          <Badge variant="outline">{DIFFICULTY_LABELS[question.difficulty]}</Badge>
-          <Badge variant="secondary">
-            {question.subjectId === 'cae'
-              ? 'Culture and Arts Education'
-              : question.subjectId === 'profed'
-                ? 'Professional Education'
-                : 'General Education'}
-          </Badge>
-        </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={question.id}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Card className="p-6">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <Badge variant="outline">{DIFFICULTY_LABELS[question.difficulty]}</Badge>
+              <Badge variant="secondary">
+                {question.subjectId === 'cae'
+                  ? 'Culture and Arts Education'
+                  : question.subjectId === 'profed'
+                    ? 'Professional Education'
+                    : 'General Education'}
+              </Badge>
+            </div>
 
         {/* The vignette comes first, as it does on exam day: a paragraph of
             set-up, then the question as the final sentence. */}
         {question.vignette ? (
-          <div className="mb-5 rounded-lg bg-gray-50 border-l-4 border-gray-300 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+          <div className="mb-5 rounded-lg bg-muted border-l-4 border-neutral-300 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
               Read the situation
             </p>
-            <p className="text-gray-700 leading-relaxed">{question.vignette}</p>
+            <p className="text-foreground leading-relaxed">{question.vignette}</p>
           </div>
         ) : null}
 
-        <h2 className="text-lg font-medium mb-5 text-gray-900">{question.prompt}</h2>
+        <h2 className="text-lg font-medium mb-5 text-foreground">{question.prompt}</h2>
 
         <div className="space-y-3" role="group" aria-label="Answer options">
           {question.options.map((option, optionIndex) => {
@@ -222,63 +236,60 @@ const SessionPlayer = ({
 
             // In an exam nothing is revealed until submission.
             let tone = '';
-            if (showFeedback) {
-              if (isAnswer) tone = 'border-green-600 bg-green-50 text-green-900';
-              else if (isPicked) tone = 'border-red-600 bg-red-50 text-red-900';
-            } else if (isPicked) {
+            if (isPicked) {
               tone = 'border-primary-600 bg-primary-50 text-primary-900';
             }
 
             return (
-              <button
+              <motion.button
                 key={option}
                 type="button"
                 onClick={() => select(optionIndex)}
                 disabled={showFeedback}
                 aria-pressed={isPicked}
+                whileHover={!showFeedback ? { scale: 1.01 } : undefined}
+                whileTap={!showFeedback ? { scale: 0.99 } : undefined}
                 className={`w-full text-left flex items-start gap-3 rounded-lg border-2 px-4 py-3 transition-colors disabled:cursor-default ${
-                  tone || 'border-gray-200 hover:border-primary-400 hover:bg-gray-50'
+                  tone || 'border-border hover:border-primary-400 hover:bg-muted'
                 }`}
               >
                 <span
                   className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold ${
-                    isPicked ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700'
+                    isPicked ? 'bg-primary-600 text-white' : 'bg-muted text-foreground'
                   }`}
                   aria-hidden="true"
                 >
                   {LETTERS[optionIndex]}
                 </span>
                 <span className="pt-0.5">{option}</span>
-                {showFeedback && isAnswer ? (
-                  <span className="ml-auto text-green-700 text-sm font-medium">Correct</span>
-                ) : null}
-                {showFeedback && isPicked && !isAnswer ? (
-                  <span className="ml-auto text-red-700 text-sm font-medium">Your answer</span>
-                ) : null}
-              </button>
+              </motion.button>
             );
           })}
         </div>
 
-        <AnimatePresence>
-          {showFeedback ? (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`mt-5 rounded-lg border-l-4 p-4 ${
-                isCorrect
-                  ? 'bg-green-50 border-green-500'
-                  : 'bg-red-50 border-red-500'
-              }`}
-            >
-              <p className={`font-semibold mb-1 ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                {isCorrect ? 'Correct' : 'Not quite'}
-              </p>
-              <p className="text-gray-700 text-sm">{question.explanation}</p>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </Card>
+            <AnimatePresence>
+              {showFeedback ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`mt-5 rounded-lg border-l-4 p-4 ${
+                    isCorrect
+                      ? 'bg-success-50 bg-green-50 border-success-500 border-green-500'
+                      : 'bg-error-50 bg-red-50 border-error-500 border-red-500'
+                  }`}
+                >
+                  <p
+                    className={`font-semibold mb-1 ${isCorrect ? 'text-success-800' : 'text-error-800'}`}
+                  >
+                    {isCorrect ? 'Correct' : 'Not quite'}
+                  </p>
+                  <p className="text-foreground text-sm">{question.explanation}</p>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </Card>
+        </motion.div>
+      </AnimatePresence>
 
       {/* Controls */}
       <div className="flex items-center justify-between gap-3">
@@ -300,7 +311,7 @@ const SessionPlayer = ({
       </div>
 
       {mode !== 'practice' && answeredCount < total ? (
-        <p className="text-xs text-gray-500 text-center">
+        <p className="text-xs text-muted-foreground text-center">
           {total - answeredCount} question{total - answeredCount === 1 ? '' : 's'} still
           unanswered. Unanswered items are marked wrong.
         </p>

@@ -25,11 +25,11 @@ export interface SessionResultsProps {
 const LETTERS = ['A', 'B', 'C', 'D'] as const;
 
 function verdict(accuracy: number): { label: string; tone: string } {
-  if (accuracy >= 90) return { label: 'Excellent', tone: 'text-green-700' };
-  if (accuracy >= 75) return { label: 'Strong', tone: 'text-green-700' };
-  if (accuracy >= 60) return { label: 'Getting there', tone: 'text-amber-700' };
-  if (accuracy >= 40) return { label: 'Needs work', tone: 'text-amber-700' };
-  return { label: 'Review this topic', tone: 'text-red-700' };
+  if (accuracy >= 90) return { label: 'Excellent', tone: 'text-success-700' };
+  if (accuracy >= 75) return { label: 'Strong', tone: 'text-success-700' };
+  if (accuracy >= 60) return { label: 'Getting there', tone: 'text-warning-700' };
+  if (accuracy >= 40) return { label: 'Needs work', tone: 'text-warning-700' };
+  return { label: 'Review this topic', tone: 'text-error-700' };
 }
 
 /**
@@ -71,29 +71,29 @@ const SessionResults = ({
             value={result.accuracy}
             size={112}
             strokeWidth={9}
-            color={result.accuracy >= 75 ? 'stroke-green-600' : result.accuracy >= 50 ? 'stroke-amber-500' : 'stroke-red-600'}
+            color={result.accuracy >= 75 ? 'stroke-success-600' : result.accuracy >= 50 ? 'stroke-warning-500' : 'stroke-error-600'}
             labelColor={tone}
           />
 
           <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-2xl font-bold text-gray-900">Session complete</h1>
+            <h1 className="text-2xl font-bold text-foreground">Session complete</h1>
             <p className={`text-lg font-semibold ${tone}`}>{label}</p>
 
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
               <div>
-                <p className="text-gray-500">Correct</p>
-                <p className="text-lg font-semibold text-green-700">{result.correct}</p>
+                <p className="text-muted-foreground">Correct</p>
+                <p className="text-lg font-semibold text-success-700">{result.correct}</p>
               </div>
               <div>
-                <p className="text-gray-500">Wrong</p>
-                <p className="text-lg font-semibold text-red-700">{result.wrong}</p>
+                <p className="text-muted-foreground">Wrong</p>
+                <p className="text-lg font-semibold text-error-700">{result.wrong}</p>
               </div>
               <div>
-                <p className="text-gray-500">Unanswered</p>
-                <p className="text-lg font-semibold text-gray-700">{result.unanswered}</p>
+                <p className="text-muted-foreground">Unanswered</p>
+                <p className="text-lg font-semibold text-foreground">{result.unanswered}</p>
               </div>
               <div>
-                <p className="text-gray-500">XP earned</p>
+                <p className="text-muted-foreground">XP earned</p>
                 <p className="text-lg font-semibold text-primary-700">+{result.xpEarned}</p>
               </div>
             </div>
@@ -109,7 +109,7 @@ const SessionResults = ({
           transition={{ delay: 0.15 }}
         >
           <Card className="p-6 border-primary-200 bg-primary-50">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">Badge unlocked</h2>
+            <h2 className="text-lg font-bold text-foreground mb-3">Badge unlocked</h2>
             <div className="flex flex-wrap gap-3">
               {unlockedBadges.map((id) => {
                 const badge = BADGES.find((b) => b.id === id);
@@ -123,8 +123,8 @@ const SessionResults = ({
                       {badge.icon}
                     </span>
                     <div>
-                      <p className="font-semibold text-gray-900">{badge.name}</p>
-                      <p className="text-xs text-gray-600">{badge.description}</p>
+                      <p className="font-semibold text-foreground">{badge.name}</p>
+                      <p className="text-xs text-muted-foreground">{badge.description}</p>
                     </div>
                   </div>
                 );
@@ -137,25 +137,25 @@ const SessionResults = ({
       {/* Topic breakdown */}
       {result.byTopic.length > 0 ? (
         <Card className="p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Performance by topic</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">Performance by topic</h2>
           <div className="space-y-3">
             {result.byTopic.map((topic) => (
               <div key={topic.topicId}>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-700">
+                  <span className="text-foreground">
                     {topicNames[topic.topicId] ?? topic.topicId}
                   </span>
-                  <span className="text-gray-500">
+                  <span className="text-muted-foreground">
                     {topic.correct}/{topic.attempted} &middot; {topic.accuracy}%
                   </span>
                 </div>
-                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                   <div
                     className={`h-2 rounded-full ${
                       topic.accuracy >= 75
                         ? 'bg-green-600'
                         : topic.accuracy >= 50
-                          ? 'bg-amber-500'
+                          ? 'bg-warning-500'
                           : 'bg-red-600'
                     }`}
                     style={{ width: `${topic.accuracy}%` }}
@@ -166,7 +166,7 @@ const SessionResults = ({
           </div>
 
           {result.bySubject.length > 0 ? (
-            <div className="mt-5 pt-5 border-t border-gray-200 flex flex-wrap gap-2">
+            <div className="mt-5 pt-5 border-t border-border flex flex-wrap gap-2">
               {result.bySubject.map((subject) => (
                 <Badge key={subject.subjectId} variant="outline">
                   {subjectNames[subject.subjectId] ?? subject.subjectId}: {subject.accuracy}%
@@ -180,18 +180,24 @@ const SessionResults = ({
       {/* Answer review */}
       {toReview.length > 0 ? (
         <Card className="p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-1">Review your answers</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <h2 className="text-lg font-bold text-foreground mb-1">Review your answers</h2>
+          <p className="text-sm text-muted-foreground mb-4">
             {toReview.length} item{toReview.length === 1 ? '' : 's'} to go over.
           </p>
 
           <ol className="space-y-5">
-            {toReview.map(({ question }) => {
+            {toReview.map(({ question }, index) => {
               const answer = answerById.get(question.id);
               const picked = answer?.chosenIndex ?? null;
 
               return (
-                <li key={question.id} className="border-b border-gray-100 pb-5 last:border-0 last:pb-0">
+                <motion.li
+                  key={question.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="border-b border-border pb-5 last:border-0 last:pb-0"
+                >
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <Badge variant="outline">{DIFFICULTY_LABELS[question.difficulty]}</Badge>
                     <Badge variant="secondary">
@@ -199,37 +205,37 @@ const SessionResults = ({
                     </Badge>
                   </div>
 
-                  <p className="font-medium text-gray-900 mb-3">{question.prompt}</p>
+                  <p className="font-medium text-foreground mb-3">{question.prompt}</p>
 
                   <div className="space-y-2 text-sm">
                     {picked === null ? (
-                      <p className="text-gray-500 italic">You left this unanswered.</p>
+                      <p className="text-muted-foreground italic">You left this unanswered.</p>
                     ) : (
-                      <p className="text-red-700">
+                      <p className="text-error-700">
                         <span className="font-medium">Your answer: </span>
                         {LETTERS[picked]}. {question.options[picked]}
                       </p>
                     )}
-                    <p className="text-green-700">
+                    <p className="text-success-700">
                       <span className="font-medium">Correct answer: </span>
                       {LETTERS[question.correctIndex]}. {question.options[question.correctIndex]}
                     </p>
                   </div>
 
-                  <div className="mt-3 rounded-lg bg-blue-50 border-l-4 border-blue-500 p-3">
-                    <p className="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">
+                  <div className="mt-3 rounded-lg bg-info-50 border-l-4 border-info-500 p-3">
+                    <p className="text-xs font-semibold text-info-800 uppercase tracking-wide mb-1">
                       Explanation
                     </p>
-                    <p className="text-sm text-gray-700">{question.explanation}</p>
+                    <p className="text-sm text-foreground">{question.explanation}</p>
                   </div>
-                </li>
+                </motion.li>
               );
             })}
           </ol>
         </Card>
       ) : (
-        <Card className="p-6 text-center bg-green-50 border-green-200">
-          <p className="text-green-800 font-medium">
+        <Card className="p-6 text-center bg-success-50 border-success-200">
+          <p className="text-success-800 font-medium">
             Every answer was correct. Nothing to review.
           </p>
         </Card>
