@@ -1,10 +1,8 @@
-import React from 'react';
+import type { HTMLAttributes } from 'react';
 
-const Card = ({ 
-  children, 
-  className = '', 
-  ...props 
-}) => {
+export interface CardProps extends HTMLAttributes<HTMLDivElement> {}
+
+const Card = ({ children, className = '', ...props }: CardProps) => {
   return (
     <div
       className={`bg-white rounded-lg shadow-md border border-gray-200 ${className}`}

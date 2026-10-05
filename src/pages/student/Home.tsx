@@ -1,12 +1,13 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Badge } from '../../components/Badge';
-import { Button } from '../../components/Button';
-import { Card } from '../../components/Card';
-import { ProgressRing } from '../../components/ProgressRing';
-import { Avatar } from '../../components/Avatar';
+import { useNavigate } from 'react-router-dom';
+import Button from '../../components/Button';
+import ProgressRing from '../../components/ProgressRing';
+import Avatar from '../../components/Avatar';
 
-const StudentHome: React.FC = () => {
+const XP_PER_LEVEL = 500;
+
+const StudentHome = () => {
+  const navigate = useNavigate();
   // Mock data - in a real app, this would come from hooks or context
   const user = {
     name: 'Juan Dela Cruz',
@@ -133,18 +134,21 @@ const StudentHome: React.FC = () => {
                   Level {user.level}
                 </span>
               </div>
-              <ProgressRing
-                value={user.xp % 500} // Assuming 500 XP per level
-                max={500}
-                size={80}
-                className="mt-4"
-                strokeWidth={4}
-                trackColor="gray-200"
-                color="blue-600"
-              />
-              <p className="mt-2 text-xs text-gray-500">
-                {(user.xp % 500)}/500 XP to Level {user.level + 1}
-              </p>
+              {/* Was passing max/strokeWidth/trackColor, which ProgressRing ignored,
+              and color="blue-600", which is not a valid stroke utility. */}
+          <ProgressRing
+            value={user.xp % XP_PER_LEVEL}
+            max={XP_PER_LEVEL}
+            size={80}
+            strokeWidth={10}
+            className="mt-4"
+            color="stroke-primary-600"
+            trackColor="stroke-gray-200"
+            labelColor="text-primary-600"
+          />
+          <p className="mt-2 text-xs text-gray-500">
+            {user.xp % XP_PER_LEVEL}/{XP_PER_LEVEL} XP to Level {user.level + 1}
+          </p>
             </motion.div>
 
             {/* Accuracy */}
@@ -252,7 +256,7 @@ const StudentHome: React.FC = () => {
               variant="outline"
               size="lg"
               className="h-12"
-              onClick={() => alert('Practice mode started!')}
+              onClick={() => navigate('/quiz')}
             >
               Practice Questions
             </Button>
