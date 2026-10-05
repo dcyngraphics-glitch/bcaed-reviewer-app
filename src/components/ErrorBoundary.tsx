@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import Button from './Button';
 import Card from './Card';
 
@@ -41,35 +42,42 @@ class ErrorBoundary extends Component<Props, State> {
     if (!error) return this.props.children;
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-        <Card className="p-8 max-w-lg w-full text-center">
-          <p className="text-4xl mb-3" aria-hidden="true">
-            ⚠️
-          </p>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Something broke</h1>
-          <p className="text-gray-600 mb-4">
-            This screen failed to load. Your progress is stored on this device and has not been
-            lost.
-          </p>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="w-full max-w-lg"
+        >
+          <Card className="p-8 text-center">
+            <p className="text-4xl mb-3" aria-hidden="true">
+              ⚠️
+            </p>
+            <h1 className="text-xl font-bold text-foreground mb-2">Something broke</h1>
+            <p className="text-muted-foreground mb-4">
+              This screen failed to load. Your progress is stored on this device and has not been
+              lost.
+            </p>
 
-          <p className="text-xs text-left text-red-700 bg-red-50 border border-red-200 rounded p-3 mb-5 break-words">
-            {error.message}
-          </p>
+            <p className="text-xs text-left text-error-700 bg-error-50 border border-error-200 rounded-md p-3 mb-5 break-words">
+              {error.message}
+            </p>
 
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Button variant="primary" onClick={this.reset}>
-              Try again
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                window.location.assign('/student/home');
-              }}
-            >
-              Back to dashboard
-            </Button>
-          </div>
-        </Card>
+            <div className="flex flex-wrap gap-3 justify-center">
+              <Button variant="primary" onClick={this.reset}>
+                Try again
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  window.location.assign('/student/home');
+                }}
+              >
+                Back to dashboard
+              </Button>
+            </div>
+          </Card>
+        </motion.div>
       </div>
     );
   }
