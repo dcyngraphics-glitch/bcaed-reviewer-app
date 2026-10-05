@@ -22,7 +22,7 @@ const Card = ({
 }: CardProps) => {
   return (
     <motion.div
-      className={`bg-card rounded-xl shadow-md border border-border ${paddingClasses[padding]} ${className}`}
+      className={`bg-card rounded-lg shadow-md border border-border ${paddingClasses[padding]} ${className}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}

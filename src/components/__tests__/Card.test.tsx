@@ -26,7 +26,7 @@ describe('Card Component', () => {
   test('uses design token border radius', () => {
     render(<Card>Card content</Card>);
     const card = screen.getByText('Card content');
-    expect(card).toHaveClass('rounded-xl');
+    expect(card).toHaveClass('rounded-lg');
   });
 
   test('uses design token shadow', () => {
