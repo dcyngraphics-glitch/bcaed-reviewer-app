@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import Button from '../../components/Button';
@@ -18,8 +18,16 @@ const todayKey = () => new Date().toISOString().slice(0, 10);
 function useCountUp(target: number, duration = 800): number {
   const [value, setValue] = useState(0);
   const rafRef = useRef<number>(0);
+  // A counting number is pure decoration; when the user has asked for reduced
+  // motion (or a test renders without waiting), show the settled value at once.
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
+    if (reduceMotion) {
+      setValue(target);
+      return;
+    }
+
     const start = performance.now();
     const tick = (now: number) => {
       const elapsed = now - start;
@@ -32,7 +40,7 @@ function useCountUp(target: number, duration = 800): number {
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [target, duration]);
+  }, [target, duration, reduceMotion]);
 
   return value;
 }
@@ -59,8 +67,7 @@ function StatTile({ label, value, suffix, sublabel, delay = 0 }: StatTileProps) 
       <Card className="p-5">
         <p className="text-sm text-neutral-500 mb-1">{label}</p>
         <p className="text-2xl font-bold text-neutral-900">
-          {animatedValue}
-          {suffix && <span className="text-sm font-normal text-neutral-500"> {suffix}</span>}
+          {suffix ? `${animatedValue} ${suffix}` : animatedValue}
         </p>
         <p className="text-xs text-neutral-500 mt-1">{sublabel}</p>
       </Card>

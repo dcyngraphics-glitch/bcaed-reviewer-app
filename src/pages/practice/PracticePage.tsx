@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
@@ -15,6 +16,9 @@ import type { Difficulty } from '../../types/content';
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
 const COUNTS = [10, 15, 20, 30] as const;
+
+/** Roughly 45 seconds a question, rounded to a friendly number of minutes. */
+const estimateMinutes = (count: number) => Math.max(1, Math.round((count * 45) / 60));
 
 const PracticePage = () => {
   const navigate = useNavigate();
@@ -80,30 +84,40 @@ const PracticePage = () => {
 
   const topicOptions = subjectId ? topicsFor(subjectId) : [];
 
+  // Shortcuts span every subject when none is picked — never a silent fallback
+  // to one subject, which used to show CAE topics under an "All topics" label.
+  const shortcutTopics = subjectId
+    ? topicsFor(subjectId)
+    : subjects.flatMap((subject) => topicsFor(subject.id));
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Practice</h1>
-        <p className="text-gray-600">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h1 className="text-2xl font-bold text-foreground">Practice</h1>
+        <p className="text-muted-foreground">
           Learning mode. Answers and explanations are revealed as you go.
         </p>
-      </div>
+      </motion.div>
 
       {stage === 'setup' ? (
         <>
-          <Card className="p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Choose what to practise</h2>
+          <Card>
+            <h2 className="text-lg font-bold text-foreground mb-4">Choose what to practise</h2>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="block text-sm font-medium text-gray-700 mb-1">Subject</span>
+                <span className="block text-sm font-medium text-muted-foreground mb-1">Subject</span>
                 <select
                   value={subjectId}
                   onChange={(e) => {
                     setSubjectId(e.target.value);
                     setTopicId('');
                   }}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="">All subjects</option>
                   {subjects.map((subject) => (
@@ -115,12 +129,12 @@ const PracticePage = () => {
               </label>
 
               <label className="block">
-                <span className="block text-sm font-medium text-gray-700 mb-1">Topic</span>
+                <span className="block text-sm font-medium text-muted-foreground mb-1">Topic</span>
                 <select
                   value={topicId}
                   onChange={(e) => setTopicId(e.target.value)}
                   disabled={!subjectId}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100"
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground disabled:bg-muted disabled:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="">All topics</option>
                   {topicOptions.map((topic) => (
@@ -131,9 +145,14 @@ const PracticePage = () => {
                 </select>
               </label>
             </div>
+            {!subjectId ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Pick a subject first to narrow the topic list down.
+              </p>
+            ) : null}
 
             <div className="mt-5">
-              <span className="block text-sm font-medium text-gray-700 mb-2">
+              <span className="block text-sm font-medium text-muted-foreground mb-2">
                 How many questions
               </span>
               <div className="flex flex-wrap gap-2">
@@ -143,16 +162,20 @@ const PracticePage = () => {
                     type="button"
                     onClick={() => setCount(option)}
                     aria-pressed={count === option}
-                    className={`px-4 py-2 rounded-md text-sm font-medium border ${
+                    className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                       count === option
-                        ? 'bg-primary-600 text-white border-primary-600'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-primary-600 text-primary-50 border-primary-600'
+                        : 'border-border text-foreground hover:bg-muted'
                     }`}
                   >
                     {option}
                   </button>
                 ))}
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Estimated time: about {estimateMinutes(count)} minute
+                {estimateMinutes(count) === 1 ? '' : 's'}
+              </p>
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -172,17 +195,17 @@ const PracticePage = () => {
             </div>
 
             {available === 0 ? (
-              <p className="mt-3 text-sm text-amber-700">
-                No approved questions match this selection yet.
+              <p className="mt-3 text-sm text-warning-700">
+                No approved questions match this selection yet. Try a different subject or topic.
               </p>
             ) : null}
           </Card>
 
           {/* Quick topic shortcuts */}
-          <Card className="p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Jump into a topic</h2>
+          <Card>
+            <h2 className="text-lg font-bold text-foreground mb-4">Jump into a topic</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {topicsFor(subjectId || 'cae').map((topic) => {
+              {shortcutTopics.map((topic) => {
                 const topicCount = questionCountFor({ topicId: topic.id });
                 return (
                   <button
@@ -192,10 +215,10 @@ const PracticePage = () => {
                       setSubjectId(topic.subjectId);
                       setTopicId(topic.id);
                     }}
-                    className="text-left rounded-lg border border-gray-200 p-4 hover:border-primary-400 hover:bg-gray-50"
+                    className="text-left rounded-xl border border-border p-4 transition-colors hover:border-primary-400 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <p className="font-medium text-gray-900 text-sm mb-1">{topic.name}</p>
-                    <p className="text-xs text-gray-500">{topicCount} questions</p>
+                    <p className="font-medium text-foreground text-sm mb-1">{topic.name}</p>
+                    <p className="text-xs text-muted-foreground">{topicCount} questions</p>
                   </button>
                 );
               })}
