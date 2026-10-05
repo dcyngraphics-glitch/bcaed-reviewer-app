@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
 import ProgressRing from '../../components/ProgressRing';
+import TrendChart from '../../components/progress/TrendChart';
+import { buildTrend, summariseTrend } from '../../components/progress/trend';
 import { useProfile } from '../../context/ProfileContext';
 import { useContent } from '../../hooks/useContent';
 import {
@@ -41,6 +43,9 @@ const ProgressPage = () => {
   });
 
   const recommendations = buildRecommendations(mastery, { topicNames });
+
+  const trendPoints = useMemo(() => buildTrend(profile.sessions), [profile.sessions]);
+  const trendSummary = useMemo(() => summariseTrend(trendPoints), [trendPoints]);
 
   return (
     <div className="space-y-6">
@@ -260,6 +265,12 @@ const ProgressPage = () => {
           </ul>
         </Card>
       ) : null}
+
+      {/* Improvement over time */}
+      <Card className="p-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Improvement over time</h2>
+        <TrendChart points={trendPoints} summary={trendSummary} />
+      </Card>
 
       {/* Session history */}
       {profile.sessions.length > 0 ? (
