@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -24,15 +25,6 @@ interface ExamPreset {
   description: string;
 }
 
-/**
- * Presets mirror the real LET paper shape: 150 items at a little over a minute
- * each. Shorter presets exist so a student can sit one in a single sitting.
- */
-/**
- * Presets are sized from the real exam table: a subtest is 150 items in a fixed
- * window, so a per-item budget is derived rather than guessed. Gen Ed is the
- * tightest paper of the day at 48 seconds per item.
- */
 const presetFrom = (
   id: string,
   name: string,
@@ -41,8 +33,6 @@ const presetFrom = (
   description: string,
 ): ExamPreset => {
   const subtest = subtestId ? SUBTESTS.find((s) => s.id === subtestId) : undefined;
-  // Use the real subtest budget when we have one; otherwise the Specialization
-  // budget, which is the most generous paper of the day.
   const perItem = subtest ? secondsPerItem(subtest) : secondsPerItem(SUBTESTS[2]);
   return {
     id,
@@ -57,10 +47,10 @@ const presetFrom = (
 const PRESETS: ExamPreset[] = [
   presetFrom(
     'marathon',
-    'Marathon paper — 350 items',
+    'Marathon paper',
     null,
     350,
-    'The long sit: three subtest-shaped sections sized by TOS weight (70 Gen Ed, 140 Prof Ed, 140 Specialization). The real exam is 450 items across a whole day — this is the longest single paper we can hold, not a replica of the day.',
+    'The long sit: three sections sized by subject weight. The real exam is 450 items across a whole day.',
   ),
   presetFrom(
     'full',
@@ -95,7 +85,7 @@ const PRESETS: ExamPreset[] = [
     'Culture and Arts Education paper',
     'cae',
     40,
-    'Your specialization — 40% of the Secondary rating.',
+    'Your specialization. 40% of the Secondary rating.',
   ),
 ];
 
@@ -117,7 +107,6 @@ const MockExamsPage = () => {
       pool: questionsFor({ subjectId: active.subjectId }),
       count: active.items,
       seed,
-      // Mock exams lean heavily situational: that is what exam day looks like.
       situationalShare: SITUATIONAL_SHARE.mock,
     });
   }, [stage, active, seed, questionsFor]);
@@ -149,136 +138,173 @@ const MockExamsPage = () => {
   const pastMocks = [...profile.sessions].filter((s) => s.mode === 'mock').reverse();
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Mock exams</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-foreground">Mock exams</h1>
+        <p className="text-muted-foreground">
           Timed, randomised and graded like the real thing. Answers stay hidden until you submit.
         </p>
       </div>
 
-      {stage === 'setup' ? (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {PRESETS.map((preset) => {
-              const available = questionsFor({ subjectId: preset.subjectId }).length;
-              // A preset can promise more items than the bank can supply. Saying
-              // "350 items" on a card when only 158 exist would be a lie the
-              // student discovers mid-exam, so the shortfall is shown here.
-              const short = preset.items > available;
-              return (
-                <Card key={preset.id} className="p-5 flex flex-col">
-                  <h2 className="font-bold text-gray-900 mb-1">{preset.name}</h2>
-                  <p className="text-sm text-gray-600 mb-3 flex-1">{preset.description}</p>
-
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge variant="outline">{preset.items} items</Badge>
-                    <Badge variant="outline">{preset.minutes} minutes</Badge>
-                    <Badge variant={short ? 'destructive' : 'secondary'}>
-                      {short ? `only ${available} available` : `${available} in the bank`}
-                    </Badge>
-                  </div>
-
-                  {short ? (
-                    <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded p-2 mb-3">
-                      Your bank holds {available} approved questions, so this paper will be
-                      shorter than {preset.items}. Every item you have will be used. Clear the
-                      backlog in the draft review queue to grow it.
-                    </p>
-                  ) : null}
-
-                  <Button
-                    variant="primary"
-                    onClick={() => start(preset)}
-                    disabled={available === 0}
+      <AnimatePresence mode="wait">
+        {stage === 'setup' ? (
+          <motion.div
+            key="setup"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-6"
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              {PRESETS.map((preset, index) => {
+                const available = questionsFor({ subjectId: preset.subjectId }).length;
+                const short = preset.items > available;
+                return (
+                  <motion.div
+                    key={preset.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
                   >
-                    Start exam
-                  </Button>
-                </Card>
-              );
-            })}
-          </div>
+                    <Card className="p-5 flex flex-col h-full">
+                      <h2 className="font-bold text-foreground mb-1">{preset.name}</h2>
+                      <p className="text-sm text-muted-foreground mb-3 flex-1">{preset.description}</p>
 
-          <Card className="p-5 bg-amber-50 border-amber-200">
-            <p className="text-sm text-amber-900">
-              <strong>Exam rules.</strong> Answers are not revealed while the exam runs. Unanswered
-              items are marked wrong. The exam submits itself automatically when the clock reaches
-              zero. Each attempt draws a fresh set of questions.
-            </p>
-          </Card>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <Badge variant="outline">{preset.items} items</Badge>
+                        <Badge variant="outline">{preset.minutes} minutes</Badge>
+                        <Badge variant={short ? 'destructive' : 'secondary'}>
+                          {short ? `only ${available} available` : `${available} in the bank`}
+                        </Badge>
+                      </div>
 
-          {pastMocks.length > 0 ? (
-            <Card className="p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Your mock exam history</h2>
-              <ul className="divide-y divide-gray-100">
-                {pastMocks.map((session) => (
-                  <li key={session.id} className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{session.date}</p>
-                      <p className="text-xs text-gray-500">
-                        {session.total} items &middot; +{session.xpEarned} XP
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p
-                        className={`text-sm font-semibold ${
-                          session.accuracy >= 75
-                            ? 'text-green-700'
-                            : session.accuracy >= 50
-                              ? 'text-amber-700'
-                              : 'text-red-700'
-                        }`}
+                      {short ? (
+                        <p className="text-xs text-warning-800 bg-warning-50 border border-warning-200 rounded p-2 mb-3">
+                          Your bank holds {available} approved questions, so this paper will be
+                          shorter than {preset.items}. Every item you have will be used. Clear the
+                          backlog in the draft review queue to grow it.
+                        </p>
+                      ) : null}
+
+                      <Button
+                        variant="primary"
+                        onClick={() => start(preset)}
+                        disabled={available === 0}
                       >
-                        {session.accuracy}%
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {session.correct}/{session.total}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                        Start exam
+                      </Button>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            <Card className="p-5 bg-warning-50 border-warning-200">
+              <p className="text-sm text-warning-900">
+                <strong>Exam rules.</strong> Answers are not revealed while the exam runs. Unanswered
+                items are marked wrong. The exam submits itself automatically when the clock reaches
+                zero. Each attempt draws a fresh set of questions.
+              </p>
             </Card>
-          ) : null}
-        </>
-      ) : null}
 
-      {stage === 'running' && active ? (
-        <SessionPlayer
-          questions={questions}
-          mode="mock"
-          timeLimitSeconds={active.minutes * 60}
-          revealAnswers={false}
-          title={active.name}
-          subtitle="Answers are hidden until you submit"
-          onFinish={handleFinish}
-          onExit={() => setStage('setup')}
-        />
-      ) : null}
+            {pastMocks.length > 0 ? (
+              <Card className="p-6">
+                <h2 className="text-lg font-bold text-foreground mb-4">Your mock exam history</h2>
+                <ul className="divide-y divide-border">
+                  {pastMocks.map((session) => (
+                    <li key={session.id} className="flex items-center justify-between py-3">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{session.date}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {session.total} items &middot; +{session.xpEarned} XP
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`text-sm font-semibold ${
+                            session.accuracy >= 75
+                              ? 'text-success-700'
+                              : session.accuracy >= 50
+                                ? 'text-warning-700'
+                                : 'text-error-700'
+                          }`}
+                        >
+                          {session.accuracy}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {session.correct}/{session.total}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ) : (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">
+                  No mock exams yet. Your results will appear here after your first attempt.
+                </p>
+              </Card>
+            )}
+          </motion.div>
+        ) : null}
 
-      {stage === 'results' && result ? (
-        <SessionResults
-          result={result}
-          answers={answers}
-          questions={questions}
-          unlockedBadges={unlocked}
-          topicNames={topicNames}
-          subjectNames={subjectNames}
-          onRetake={() => {
-            dismissRecentBadges();
-            if (active) start(active);
-          }}
-          onDone={() => {
-            dismissRecentBadges();
-            navigate('/student/home');
-          }}
-          onReviewMistakes={() => {
-            dismissRecentBadges();
-            navigate('/mistakes');
-          }}
-        />
-      ) : null}
-    </div>
+        {stage === 'running' && active ? (
+          <motion.div
+            key="running"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <SessionPlayer
+              questions={questions}
+              mode="mock"
+              timeLimitSeconds={active.minutes * 60}
+              revealAnswers={false}
+              title={active.name}
+              subtitle="Answers are hidden until you submit"
+              onFinish={handleFinish}
+              onExit={() => setStage('setup')}
+            />
+          </motion.div>
+        ) : null}
+
+        {stage === 'results' && result ? (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <SessionResults
+              result={result}
+              answers={answers}
+              questions={questions}
+              unlockedBadges={unlocked}
+              topicNames={topicNames}
+              subjectNames={subjectNames}
+              onRetake={() => {
+                dismissRecentBadges();
+                if (active) start(active);
+              }}
+              onDone={() => {
+                dismissRecentBadges();
+                navigate('/student/home');
+              }}
+              onReviewMistakes={() => {
+                dismissRecentBadges();
+                navigate('/mistakes');
+              }}
+            />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
