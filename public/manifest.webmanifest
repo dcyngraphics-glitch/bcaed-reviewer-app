@@ -1,0 +1,59 @@
+{
+  "name": "BCAED Reviewer — Culture and Arts Education LET Prep",
+  "short_name": "BCAED Reviewer",
+  "description": "A 12-week review program for the PRC Licensure Examination for Professional Teachers, Culture and Arts Education specialization.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f9fafb",
+  "theme_color": "#2563eb",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Practice",
+      "short_name": "Practice",
+      "url": "/practice",
+      "description": "Start a practice session"
+    },
+    {
+      "name": "Mock exam",
+      "short_name": "Mock exam",
+      "url": "/mock-exams",
+      "description": "Sit a timed mock examination"
+    },
+    {
+      "name": "My Mistakes",
+      "short_name": "Mistakes",
+      "url": "/mistakes",
+      "description": "Review questions you got wrong"
+    }
+  ]
+}

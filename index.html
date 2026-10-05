@@ -3,11 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BCAED Reviewer App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>BCAED Reviewer — Culture and Arts Education LET Prep</title>
+    <meta
+      name="description"
+      content="A 12-week review program for the PRC Licensure Examination for Professional Teachers, Culture and Arts Education specialization."
+    />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#2563eb" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="BCAED Reviewer" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Registered only in a production build: a dev-mode service worker caches
+      // module URLs that Vite rewrites on every edit, which breaks HMR.
+      if ('serviceWorker' in navigator && import.meta.env.PROD) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {
+            /* offline support is a bonus, never a blocker */
+          });
+        });
+      }
+    </script>
   </body>
 </html>
