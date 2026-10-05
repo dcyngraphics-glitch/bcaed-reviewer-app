@@ -102,14 +102,23 @@ against. Nothing was copied from another reviewer.
 ### Content
 - Subject → Topic → Lesson → Question model, admin-editable by design.
 - 11 written lessons with key points.
-- **135 original multiple-choice questions** spanning all three subjects, every
-  TOS topic, and all five difficulty levels. A content-integrity test suite fails
-  the build on a fifth option, a bad index, a subject/topic mismatch, a missing
-  source or a missing explanation.
-- **46 situational items** in the real exam's shape: a vignette, then the
-  question as the final sentence, with the discriminating detail buried
+- **158 approved original multiple-choice questions** spanning all three subjects
+  (73 Culture and Arts Education, 52 Professional Education, 33 General
+  Education), every TOS topic, and all five difficulty levels — 23 easy,
+  79 moderate, 56 difficult. A content-integrity test suite fails the build on
+  a fifth option, a bad index, a subject/topic mismatch, a missing source or a
+  missing explanation.
+- **46 approved situational items** in the real exam's shape: a vignette, then
+  the question as the final sentence, with the discriminating detail buried
   mid-choice so the opening cannot be pattern-matched. See
   `docs/LET-EXAM-FACTS.md`.
+- **38 cited AI drafts** in `src/data/draftQuestions.ts` (14 easy-situational,
+  24 moderate-situational), all landing as `status: 'pending'` and reviewed at
+  `/admin/review-queue`. They exist to close a measured gap: a 60-item mock needs
+  14 easy- and 24 moderate-situational items and the live bank held 0 and 3,
+  which is why mocks were coming out 13/60 situational against an 80% target.
+  With them approved, a 60-item mock is exactly 18/30/12 by difficulty and
+  48/60 situational.
 
 ### Screens
 - **Home** — week, phase, today's mission, accuracy, streak, XP/level, badges,
@@ -128,7 +137,7 @@ against. Nothing was copied from another reviewer.
   difficulty.
 - **Profile** — account, study schedule, data controls, sign out.
 - **Admin** — question bank health: approved/pending counts, difficulty spread,
-  coverage gaps, full topic table.
+  coverage gaps, full topic table, plus a link to the draft review queue.
 
 ### PWA
 - `manifest.webmanifest` — standalone, theme colour, maskable icon, shortcuts
@@ -153,7 +162,7 @@ what each one needs and the recommended order, is in
 | Student accounts, pending approval | Needs a user store and an admin role |
 | Admin CRUD on questions/topics/lessons | Needs a database; today the bank is a source file |
 | Reviewer upload → extract → create questions | Needs file storage and the extraction pipeline |
-| AI-draft review workflow | The `status: 'pending'` gate exists and is enforced, but nothing writes pending rows yet |
+| AI-draft review workflow | The `status: 'pending'` gate, the conversion pipeline and the `/admin/review-queue` screen exist and are enforced by tests; approving is still a code change rather than a persisted write |
 | Cohort and per-student analytics | Needs a server-side store |
 | Cloud sync of offline activity | The local-first store is in place; there is nowhere to sync to |
 
