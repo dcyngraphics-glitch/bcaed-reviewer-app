@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { SUBJECTS, TOPICS, LESSONS } from '../data/curriculum';
-import { SEED_QUESTIONS } from '../data/seedQuestions';
+import { ALL_QUESTIONS } from '../data/questions';
 
 /** Display-name maps, built once. */
 const topicNames: Record<string, string> = Object.fromEntries(
@@ -15,11 +15,11 @@ export interface ContentApi {
   subjects: typeof SUBJECTS;
   topics: typeof TOPICS;
   lessons: typeof LESSONS;
-  questions: typeof SEED_QUESTIONS;
+  questions: typeof ALL_QUESTIONS;
   topicNames: Record<string, string>;
   subjectNames: Record<string, string>;
   topicsFor: (subjectId: string) => typeof TOPICS;
-  questionsFor: (filter: { subjectId?: string; topicId?: string }) => typeof SEED_QUESTIONS;
+  questionsFor: (filter: { subjectId?: string; topicId?: string }) => typeof ALL_QUESTIONS;
   lessonsFor: (filter: { subjectId?: string; topicId?: string }) => typeof LESSONS;
   questionCountFor: (filter: { subjectId?: string; topicId?: string }) => number;
   lessonById: (id: string) => (typeof LESSONS)[number] | undefined;
@@ -28,14 +28,15 @@ export interface ContentApi {
 /**
  * Reads the content bank.
  *
- * Today this returns the bundled seed content. When an admin-editable backend
+ * Today this returns the bundled question bank (seed + situational +
+ * additional). When an admin-editable backend
  * arrives, this is the single seam that changes — pages never import the data
  * files directly.
  */
 export function useContent(): ContentApi {
   return useMemo<ContentApi>(() => {
     const questionsFor = (filter: { subjectId?: string; topicId?: string }) =>
-      SEED_QUESTIONS.filter((question) => {
+      ALL_QUESTIONS.filter((question) => {
         if (question.status !== 'approved') return false;
         if (filter.subjectId && question.subjectId !== filter.subjectId) return false;
         if (filter.topicId && question.topicId !== filter.topicId) return false;
@@ -53,7 +54,7 @@ export function useContent(): ContentApi {
       subjects: SUBJECTS,
       topics: TOPICS,
       lessons: LESSONS,
-      questions: SEED_QUESTIONS,
+      questions: ALL_QUESTIONS,
       topicNames,
       subjectNames,
       topicsFor: (subjectId: string) => TOPICS.filter((topic) => topic.subjectId === subjectId),

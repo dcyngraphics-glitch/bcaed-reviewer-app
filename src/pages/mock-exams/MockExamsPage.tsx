@@ -8,6 +8,8 @@ import SessionResults from '../../components/session/SessionResults';
 import { useProfile } from '../../context/ProfileContext';
 import { useContent } from '../../hooks/useContent';
 import { buildMockExam } from '../../engine/selection';
+import { SITUATIONAL_SHARE } from '../../exam/composition';
+import { SUBTESTS, secondsPerItem } from '../../exam';
 import { hashSeed } from '../../engine/random';
 import type { AnswerRecord, SessionResult } from '../../engine/scoring';
 
@@ -26,37 +28,68 @@ interface ExamPreset {
  * Presets mirror the real LET paper shape: 150 items at a little over a minute
  * each. Shorter presets exist so a student can sit one in a single sitting.
  */
+/**
+ * Presets are sized from the real exam table: a subtest is 150 items in a fixed
+ * window, so a per-item budget is derived rather than guessed. Gen Ed is the
+ * tightest paper of the day at 48 seconds per item.
+ */
+const presetFrom = (
+  id: string,
+  name: string,
+  subtestId: 'gened' | 'profed' | 'cae' | null,
+  items: number,
+  description: string,
+): ExamPreset => {
+  const subtest = subtestId ? SUBTESTS.find((s) => s.id === subtestId) : undefined;
+  // Use the real subtest budget when we have one; otherwise the Specialization
+  // budget, which is the most generous paper of the day.
+  const perItem = subtest ? secondsPerItem(subtest) : secondsPerItem(SUBTESTS[2]);
+  return {
+    id,
+    name,
+    items,
+    minutes: Math.round((items * perItem) / 60),
+    subjectId: subtestId ?? undefined,
+    description,
+  };
+};
+
 const PRESETS: ExamPreset[] = [
-  {
-    id: 'full',
-    name: 'Full mock exam',
-    items: 30,
-    minutes: 36,
-    description: 'Mixed subjects, rising difficulty. Closest to exam conditions.',
-  },
-  {
-    id: 'quick',
-    name: 'Quick mock exam',
-    items: 15,
-    minutes: 18,
-    description: 'A short paper when you have twenty minutes to spare.',
-  },
-  {
-    id: 'cae',
-    name: 'Culture and Arts Education paper',
-    items: 20,
-    minutes: 24,
-    subjectId: 'cae',
-    description: 'Your specialization — 40% of the Secondary rating.',
-  },
-  {
-    id: 'profed',
-    name: 'Professional Education paper',
-    items: 20,
-    minutes: 24,
-    subjectId: 'profed',
-    description: 'Teaching profession, methods, learners, assessment and field study.',
-  },
+  presetFrom(
+    'full',
+    'Full mock exam',
+    null,
+    60,
+    'All three subjects, rising difficulty, at exam-day pacing. The closest thing to the real paper.',
+  ),
+  presetFrom(
+    'quick',
+    'Quick mock exam',
+    null,
+    25,
+    'A short paper when you have twenty minutes to spare.',
+  ),
+  presetFrom(
+    'gened',
+    'General Education paper',
+    'gened',
+    40,
+    'The tightest paper of the day: 48 seconds per item on the real thing.',
+  ),
+  presetFrom(
+    'profed',
+    'Professional Education paper',
+    'profed',
+    40,
+    'Teaching profession, methods, learners, assessment and field study.',
+  ),
+  presetFrom(
+    'cae',
+    'Culture and Arts Education paper',
+    'cae',
+    40,
+    'Your specialization — 40% of the Secondary rating.',
+  ),
 ];
 
 const MockExamsPage = () => {
@@ -77,6 +110,8 @@ const MockExamsPage = () => {
       pool: questionsFor({ subjectId: active.subjectId }),
       count: active.items,
       seed,
+      // Mock exams lean heavily situational: that is what exam day looks like.
+      situationalShare: SITUATIONAL_SHARE.mock,
     });
   }, [stage, active, seed, questionsFor]);
 

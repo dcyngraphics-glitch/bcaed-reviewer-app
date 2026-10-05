@@ -13,6 +13,15 @@ import {
   buildRecommendations,
 } from '../../engine/progress';
 import { programProgress } from '../../program';
+import {
+  SUBTESTS,
+  passingStatus,
+  weakestSubtest,
+  PASSING_AVERAGE,
+  MINIMUM_SUBTEST_RATING,
+  type SubtestId,
+  type SubtestRating,
+} from '../../exam';
 
 const ProgressPage = () => {
   const { profile, stats, week } = useProfile();
@@ -46,6 +55,21 @@ const ProgressPage = () => {
 
   const trendPoints = useMemo(() => buildTrend(profile.sessions), [profile.sessions]);
   const trendSummary = useMemo(() => summariseTrend(trendPoints), [trendPoints]);
+
+  // Project a rating for each subtest from the student's accuracy on it, then
+  // apply the real passing rule. A single average hides the condition that
+  // actually fails people: one subtest under 50%.
+  const subtestRatings = useMemo<SubtestRating[]>(
+    () =>
+      SUBTESTS.map((subtest) => {
+        const perf = stats.bySubject.find((s) => s.subjectId === subtest.subjectId);
+        return { subtestId: subtest.id as SubtestId, score: perf?.accuracy ?? 0 };
+      }).filter((r) => stats.bySubject.some((s) => s.subjectId === r.subtestId)),
+    [stats.bySubject],
+  );
+
+  const passing = useMemo(() => passingStatus(subtestRatings), [subtestRatings]);
+  const weakest = useMemo(() => weakestSubtest(subtestRatings), [subtestRatings]);
 
   return (
     <div className="space-y-6">
@@ -263,6 +287,79 @@ const ProgressPage = () => {
               </li>
             ))}
           </ul>
+        </Card>
+      ) : null}
+
+      {/* Passing rule */}
+      {subtestRatings.length > 0 ? (
+        <Card className={`p-6 ${passing.passed ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+          <h2 className="text-lg font-bold text-gray-900 mb-1">
+            {passing.passed ? 'On track to pass' : 'Not yet passing'}
+          </h2>
+          <p className="text-sm text-gray-700 mb-4">
+            The LET requires a weighted average of at least {PASSING_AVERAGE}%{' '}
+            <strong>and</strong> no subtest below {MINIMUM_SUBTEST_RATING}%. Both conditions must
+            hold.
+          </p>
+
+          <div className="space-y-3 mb-4">
+            {subtestRatings.map((rating) => {
+              const subtest = SUBTESTS.find((s) => s.id === rating.subtestId)!;
+              const below = rating.score < MINIMUM_SUBTEST_RATING;
+              return (
+                <div key={rating.subtestId}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-700">
+                      {subtest.name}{' '}
+                      <span className="text-gray-400">({Math.round(subtest.weight * 100)}%)</span>
+                    </span>
+                    <span className={below ? 'font-semibold text-red-700' : 'text-gray-600'}>
+                      {rating.score}%
+                      {below ? ' — below the floor' : ''}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-2 rounded-full ${below ? 'bg-red-600' : rating.score >= 75 ? 'bg-green-600' : 'bg-amber-500'}`}
+                      style={{ width: `${Math.min(100, rating.score)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-gray-500">Projected average</p>
+              <p className="font-semibold text-gray-900">{passing.average.toFixed(1)}%</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Weakest subtest</p>
+              <p className="font-semibold text-gray-900">
+                {weakest
+                  ? `${SUBTESTS.find((s) => s.id === weakest.subtestId)?.name} (${weakest.score}%)`
+                  : '—'}
+              </p>
+            </div>
+          </div>
+
+          {passing.failingSubtests.length > 0 ? (
+            <p className="mt-4 text-sm font-medium text-red-800">
+              {passing.failingSubtests.length} subtest
+              {passing.failingSubtests.length === 1 ? '' : 's'} below the {MINIMUM_SUBTEST_RATING}%
+              floor. This fails the exam regardless of the average — fix this first.
+            </p>
+          ) : passing.averageShortfall > 0 ? (
+            <p className="mt-4 text-sm text-amber-900">
+              {passing.averageShortfall.toFixed(1)} points below the {PASSING_AVERAGE}% average.
+            </p>
+          ) : null}
+
+          <p className="mt-3 text-xs text-gray-500">
+            Projected from your accuracy on each subtest so far. Sit a full mock for each subtest to
+            make this estimate firmer.
+          </p>
         </Card>
       ) : null}
 

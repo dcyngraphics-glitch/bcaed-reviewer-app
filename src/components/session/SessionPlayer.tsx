@@ -202,6 +202,17 @@ const SessionPlayer = ({
           </Badge>
         </div>
 
+        {/* The vignette comes first, as it does on exam day: a paragraph of
+            set-up, then the question as the final sentence. */}
+        {question.vignette ? (
+          <div className="mb-5 rounded-lg bg-gray-50 border-l-4 border-gray-300 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+              Read the situation
+            </p>
+            <p className="text-gray-700 leading-relaxed">{question.vignette}</p>
+          </div>
+        ) : null}
+
         <h2 className="text-lg font-medium mb-5 text-gray-900">{question.prompt}</h2>
 
         <div className="space-y-3" role="group" aria-label="Answer options">

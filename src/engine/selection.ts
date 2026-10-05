@@ -90,9 +90,15 @@ export function selectQuestions({
 /**
  * A mock exam is a fixed paper: rising difficulty, no repeats, and the hardest
  * questions land at the end so the exam ramps like the real LET.
+ *
+ * When `situationalShare` is set, the paper is composed to hit that share of
+ * vignette-style items — mock exams use a high share because that is what exam
+ * day looks like, while practice keeps a graded ramp.
  */
-export function buildMockExam(options: Omit<SelectionOptions, 'targetDifficulty'>): Question[] {
-  const { pool, count, seed, filter, excludeIds } = options;
+export function buildMockExam(
+  options: Omit<SelectionOptions, 'targetDifficulty'> & { situationalShare?: number },
+): Question[] {
+  const { pool, count, seed, filter, excludeIds, situationalShare } = options;
   if (count <= 0) return [];
 
   const candidates = eligible(pool, filter, excludeIds);
@@ -100,30 +106,55 @@ export function buildMockExam(options: Omit<SelectionOptions, 'targetDifficulty'
 
   const rng = createRng(seed);
 
-  // Draw fairly from each band before ordering, so the ramp is not just
-  // "whatever the pool happened to be sorted by".
-  const perBand = Math.max(1, Math.ceil(count / LADDER.length));
-  const drawn: Question[] = [];
-  for (const level of LADDER) {
-    if (drawn.length >= count) break;
-    const band = shuffle(
-      candidates.filter((q) => q.difficulty === level),
-      rng,
-    );
-    drawn.push(...band.slice(0, perBand));
+  // Split the pool by style when a share is requested, so the paper can be
+  // composed deliberately rather than hoping the shuffle produces the mix.
+  const drawFrom = (items: Question[], take: number): Question[] =>
+    shuffle(items, rng).slice(0, Math.max(0, take));
+
+  let selected: Question[] = [];
+
+  if (situationalShare !== undefined) {
+    const situationalPool = candidates.filter((q) => q.situational);
+    const straightPool = candidates.filter((q) => !q.situational);
+
+    const wantedSituational = Math.round(count * situationalShare);
+    const situational = drawFrom(situationalPool, wantedSituational);
+    const straight = drawFrom(straightPool, count - situational.length);
+
+    selected = [...situational, ...straight];
+
+    // If either pool was too thin, top up from whatever is left.
+    if (selected.length < count) {
+      const used = new Set(selected.map((q) => q.id));
+      const leftovers = shuffle(
+        candidates.filter((q) => !used.has(q.id)),
+        rng,
+      );
+      selected.push(...leftovers.slice(0, count - selected.length));
+    }
+  } else {
+    // No style target: draw fairly from each difficulty band, then order.
+    const perBand = Math.max(1, Math.ceil(count / LADDER.length));
+    for (const level of LADDER) {
+      if (selected.length >= count) break;
+      const band = shuffle(
+        candidates.filter((q) => q.difficulty === level),
+        rng,
+      );
+      selected.push(...band.slice(0, perBand));
+    }
+
+    if (selected.length < count) {
+      const used = new Set(selected.map((q) => q.id));
+      const leftovers = shuffle(
+        candidates.filter((q) => !used.has(q.id)),
+        rng,
+      );
+      selected.push(...leftovers.slice(0, count - selected.length));
+    }
   }
 
-  // Top up from anything left over if some bands were thin.
-  if (drawn.length < count) {
-    const used = new Set(drawn.map((q) => q.id));
-    const leftovers = shuffle(
-      candidates.filter((q) => !used.has(q.id)),
-      rng,
-    );
-    drawn.push(...leftovers.slice(0, count - drawn.length));
-  }
-
-  return drawn
+  return selected
     .slice(0, count)
     .sort((a, b) => a.difficulty - b.difficulty || a.id.localeCompare(b.id));
 }

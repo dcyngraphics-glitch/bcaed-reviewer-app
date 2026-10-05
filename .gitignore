@@ -23,3 +23,6 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# The user's own reviewer materials — never commit third-party content
+reviewers/
