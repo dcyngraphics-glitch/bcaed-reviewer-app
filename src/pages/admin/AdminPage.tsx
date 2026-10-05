@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
+import Button from '../../components/Button';
 import { useContent } from '../../hooks/useContent';
 import { DIFFICULTY_LABELS } from '../../types/content';
 import type { Difficulty } from '../../types/content';
@@ -48,6 +49,20 @@ const AdminPage = () => {
         <h1 className="text-2xl font-bold text-gray-900">Admin</h1>
         <p className="text-gray-600">Question bank health and content coverage.</p>
       </div>
+
+      <Card className="p-5 border-primary-200 bg-primary-50">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-gray-900">Draft review queue</h2>
+            <p className="text-sm text-gray-700">
+              AI-drafted questions awaiting review. Not visible to students.
+            </p>
+          </div>
+          <a href="/admin/review-queue">
+            <Button variant="primary">Review drafts</Button>
+          </a>
+        </div>
+      </Card>
 
       {/* Headline counts */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

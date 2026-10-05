@@ -20,6 +20,7 @@ const NAV = [
   { label: 'Diagnostic', to: '/diagnostic' },
   { label: 'Profile', to: '/profile' },
   { label: 'Admin', to: '/admin' },
+  { label: 'Review Queue', to: '/admin/review-queue' },
 ] as const;
 
 const Header = () => {

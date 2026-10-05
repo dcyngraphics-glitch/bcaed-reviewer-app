@@ -12,6 +12,7 @@ import AchievementsPage from '../pages/achievements/AchievementsPage';
 import DiagnosticPage from '../pages/diagnostic/DiagnosticPage';
 import ProfilePage from '../pages/profile/ProfilePage';
 import AdminPage from '../pages/admin/AdminPage';
+import ReviewQueuePage from '../pages/admin/ReviewQueuePage';
 import NotFound from '../pages/NotFound';
 import { AuthProvider, RedirectIfAuthenticated, RequireAuth } from './auth';
 import { ProfileProvider } from '../context/ProfileContext';
@@ -60,6 +61,7 @@ const AppRoutes = () => {
             <Route path="diagnostic" element={<ErrorBoundary><DiagnosticPage /></ErrorBoundary>} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="admin/review-queue" element={<ReviewQueuePage />} />
 
             {/* Old path kept alive so a bookmark or an old link still lands. */}
             <Route path="quiz" element={<Navigate to="/practice" replace />} />
