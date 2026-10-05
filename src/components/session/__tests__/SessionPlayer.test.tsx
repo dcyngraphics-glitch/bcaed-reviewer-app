@@ -274,9 +274,9 @@ describe('SessionPlayer', () => {
       );
       fireEvent.click(screen.getByText('Paris'));
       // The feedback section should show "Correct"
-      const feedback = screen.getByText('Paris is the capital of France.').closest('.bg-green-50');
+      const feedback = screen.getByText('Paris is the capital of France.').closest('.bg-success-50');
       expect(feedback).toBeInTheDocument();
-      expect(feedback).toHaveClass('border-green-500');
+      expect(feedback).toHaveClass('border-success-500');
     });
 
     test('shows incorrect feedback after selecting wrong answer', () => {
@@ -291,9 +291,9 @@ describe('SessionPlayer', () => {
       );
       fireEvent.click(screen.getByText('London'));
       // The feedback section should show "Not quite"
-      const feedback = screen.getByText('Paris is the capital of France.').closest('.bg-red-50');
+      const feedback = screen.getByText('Paris is the capital of France.').closest('.bg-error-50');
       expect(feedback).toBeInTheDocument();
-      expect(feedback).toHaveClass('border-red-500');
+      expect(feedback).toHaveClass('border-error-500');
     });
 
     test('shows explanation after answering', () => {
@@ -460,7 +460,7 @@ describe('SessionPlayer', () => {
         />,
       );
       const title = screen.getByText('Practice Session');
-      expect(title).toHaveClass('text-gray-900');
+      expect(title).toHaveClass('text-foreground');
     });
 
     test('uses design token classes for the card', () => {
@@ -474,9 +474,7 @@ describe('SessionPlayer', () => {
         />,
       );
       // The Card component should use bg-card and shadow-md
-      const questionText = screen.getByText('Question one?');
-      const card = questionText.closest('.bg-card');
-      expect(card).not.toBeNull();
+      const card = screen.getByText('Question one?').closest('.bg-card');
       expect(card).toHaveClass('shadow-md');
     });
 
@@ -490,8 +488,8 @@ describe('SessionPlayer', () => {
           onFinish={() => {}}
         />,
       );
-      // Progress bar track should use bg-gray-200
-      const progressTrack = document.querySelector('.bg-gray-200');
+      // Progress bar track should use bg-muted
+      const progressTrack = document.querySelector('.bg-muted');
       expect(progressTrack).toBeInTheDocument();
     });
 
@@ -506,9 +504,14 @@ describe('SessionPlayer', () => {
         />,
       );
       fireEvent.click(screen.getByText('Paris'));
-      // The feedback should use green design tokens
-      const feedback = screen.getByText('Paris is the capital of France.').closest('.bg-green-50');
-      expect(feedback).toHaveClass('border-green-500');
+      // The feedback should use success design tokens. "Correct" now appears
+      // twice — an inline badge on the option plus the panel heading — so anchor
+      // on the explanation, which is unique, and climb to the panel.
+      const feedback = screen
+        .getByText('Paris is the capital of France.')
+        .closest('.bg-success-50');
+      expect(feedback).toHaveClass('border-success-500');
+      expect(screen.getByText('Correct')).toBeInTheDocument();
     });
 
     test('uses design token classes for incorrect answer feedback', () => {
@@ -522,9 +525,9 @@ describe('SessionPlayer', () => {
         />,
       );
       fireEvent.click(screen.getByText('London'));
-      // The feedback should use red design tokens
-      const feedback = screen.getByText('Not quite').closest('.bg-red-50');
-      expect(feedback).toHaveClass('border-red-500');
+      // The feedback should use error design tokens
+      const feedback = screen.getByText('Not quite').closest('.bg-error-50');
+      expect(feedback).toHaveClass('border-error-500');
     });
 
     test('uses design token classes for selected answer', () => {
@@ -539,9 +542,8 @@ describe('SessionPlayer', () => {
       );
       fireEvent.click(screen.getByText('Paris'));
       const parisButton = screen.getByText('Paris').closest('button');
-      // When feedback is shown and answer is correct, it uses green tokens
-      expect(parisButton).toHaveClass('border-green-600');
-      expect(parisButton).toHaveClass('bg-green-50');
+      expect(parisButton).toHaveClass('border-primary-600');
+      expect(parisButton).toHaveClass('bg-primary-50');
     });
 
     test('uses design token classes for vignette', () => {
@@ -555,8 +557,8 @@ describe('SessionPlayer', () => {
           onFinish={() => {}}
         />,
       );
-      const vignette = screen.getByText('A scenario about teaching.').closest('.bg-gray-50');
-      expect(vignette).toHaveClass('border-gray-300');
+      const vignette = screen.getByText('A scenario about teaching.').closest('.bg-muted');
+      expect(vignette).toHaveClass('border-neutral-300');
     });
   });
 });

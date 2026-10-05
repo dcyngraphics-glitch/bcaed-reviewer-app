@@ -414,7 +414,7 @@ describe('SessionResults', () => {
         />,
       );
       const heading = screen.getByText('Session complete');
-      expect(heading).toHaveClass('text-gray-900');
+      expect(heading).toHaveClass('text-foreground');
     });
 
     test('uses design token classes for correct count', () => {
@@ -427,7 +427,7 @@ describe('SessionResults', () => {
         />,
       );
       const correctLabel = screen.getByText('Correct');
-      expect(correctLabel).toHaveClass('text-gray-500');
+      expect(correctLabel).toHaveClass('text-muted-foreground');
     });
 
     test('uses design token classes for wrong count', () => {
@@ -440,7 +440,7 @@ describe('SessionResults', () => {
         />,
       );
       const wrongLabel = screen.getByText('Wrong');
-      expect(wrongLabel).toHaveClass('text-gray-500');
+      expect(wrongLabel).toHaveClass('text-muted-foreground');
     });
 
     test('uses design token classes for XP', () => {
@@ -453,7 +453,7 @@ describe('SessionResults', () => {
         />,
       );
       const xpLabel = screen.getByText('XP earned');
-      expect(xpLabel).toHaveClass('text-gray-500');
+      expect(xpLabel).toHaveClass('text-muted-foreground');
     });
 
     test('uses design token classes for topic breakdown', () => {
@@ -466,7 +466,7 @@ describe('SessionResults', () => {
         />,
       );
       const topicHeading = screen.getByText('Performance by topic');
-      expect(topicHeading).toHaveClass('text-gray-900');
+      expect(topicHeading).toHaveClass('text-foreground');
     });
 
     test('uses design token classes for review section', () => {
@@ -479,7 +479,7 @@ describe('SessionResults', () => {
         />,
       );
       const reviewHeading = screen.getByText('Review your answers');
-      expect(reviewHeading).toHaveClass('text-gray-900');
+      expect(reviewHeading).toHaveClass('text-foreground');
     });
 
     test('uses design token classes for explanation box', () => {
@@ -492,8 +492,8 @@ describe('SessionResults', () => {
         />,
       );
       const explanation = screen.getByText('Paris is the capital of France.');
-      const box = explanation.closest('.bg-blue-50');
-      expect(box).toHaveClass('border-blue-500');
+      const box = explanation.closest('.bg-info-50');
+      expect(box).toHaveClass('border-info-500');
     });
 
     test('uses design token classes for badge card', () => {
@@ -520,7 +520,7 @@ describe('SessionResults', () => {
         />,
       );
       // Topic progress bar track
-      const track = document.querySelector('.bg-gray-200');
+      const track = document.querySelector('.bg-muted');
       expect(track).toBeInTheDocument();
     });
 
@@ -533,8 +533,8 @@ describe('SessionResults', () => {
           onDone={() => {}}
         />,
       );
-      const card = screen.getByText(/Every answer was correct/i).closest('.bg-green-50');
-      expect(card).toHaveClass('border-green-200');
+      const card = screen.getByText(/Every answer was correct/i).closest('.bg-success-50');
+      expect(card).toHaveClass('border-success-200');
     });
   });
 });
