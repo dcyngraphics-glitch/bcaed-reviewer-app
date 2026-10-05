@@ -8,15 +8,22 @@ export interface TrendChartProps {
 
 const MODE_COLOURS: Record<string, string> = {
   practice: 'fill-primary-500',
-  mock: 'fill-purple-500',
-  mistakes: 'fill-amber-500',
-  diagnostic: 'fill-teal-500',
+  mock: 'fill-secondary-500',
+  mistakes: 'fill-warning-500',
+  diagnostic: 'fill-info-500',
+};
+
+const MODE_BG_COLOURS: Record<string, string> = {
+  practice: 'bg-primary-500',
+  mock: 'bg-secondary-500',
+  mistakes: 'bg-warning-500',
+  diagnostic: 'bg-info-500',
 };
 
 const DIRECTION_LABEL: Record<TrendSummary['direction'], { text: string; tone: string }> = {
-  improving: { text: 'Improving', tone: 'text-green-700' },
-  declining: { text: 'Slipping', tone: 'text-red-700' },
-  steady: { text: 'Steady', tone: 'text-gray-600' },
+  improving: { text: 'Improving', tone: 'text-success-700' },
+  declining: { text: 'Slipping', tone: 'text-error-700' },
+  steady: { text: 'Steady', tone: 'text-neutral-600' },
 };
 
 /**
@@ -27,7 +34,7 @@ const DIRECTION_LABEL: Record<TrendSummary['direction'], { text: string; tone: s
 const TrendChart = ({ points, summary }: TrendChartProps) => {
   if (points.length === 0) {
     return (
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-muted-foreground">
         Your accuracy trend appears here once you have completed a session.
       </p>
     );
@@ -53,8 +60,8 @@ const TrendChart = ({ points, summary }: TrendChartProps) => {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-4 mb-3 text-sm">
-        <span className="text-gray-500">
-          Average <span className="font-semibold text-gray-900">{summary.average}%</span>
+        <span className="text-muted-foreground">
+          Average <span className="font-semibold text-foreground">{summary.average}%</span>
         </span>
         <span className={label.tone}>
           {label.text}
@@ -65,7 +72,7 @@ const TrendChart = ({ points, summary }: TrendChartProps) => {
             </span>
           ) : null}
         </span>
-        <span className="text-gray-500">{points.length} sessions</span>
+        <span className="text-muted-foreground">{points.length} sessions</span>
       </div>
 
       <svg
@@ -82,14 +89,14 @@ const TrendChart = ({ points, summary }: TrendChartProps) => {
               x2={width - padX}
               y1={y(mark)}
               y2={y(mark)}
-              className="stroke-gray-200"
+              className="stroke-neutral-200"
               strokeWidth={1}
             />
             <text
               x={padX - 8}
               y={y(mark) + 4}
               textAnchor="end"
-              className="fill-gray-400"
+              className="fill-neutral-400"
               fontSize={11}
             >
               {mark}
@@ -132,10 +139,10 @@ const TrendChart = ({ points, summary }: TrendChartProps) => {
         ))}
       </svg>
 
-      <div className="flex flex-wrap gap-4 mt-3 text-xs text-gray-500">
-        {Object.entries(MODE_COLOURS).map(([mode, colour]) => (
+      <div className="flex flex-wrap gap-4 mt-3 text-xs text-muted-foreground">
+        {Object.entries(MODE_COLOURS).map(([mode, _colour]) => (
           <span key={mode} className="flex items-center gap-1.5">
-            <span className={`inline-block w-2.5 h-2.5 rounded-full ${colour.replace('fill-', 'bg-')}`} />
+            <span className={`inline-block w-2.5 h-2.5 rounded-full ${MODE_BG_COLOURS[mode] ?? 'bg-primary-500'}`} />
             <span className="capitalize">{mode}</span>
           </span>
         ))}
