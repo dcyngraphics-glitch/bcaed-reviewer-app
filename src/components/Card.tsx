@@ -1,15 +1,35 @@
-import type { HTMLAttributes } from 'react';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {}
+export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
 
-const Card = ({ children, className = '', ...props }: CardProps) => {
+export interface CardProps extends Omit<HTMLMotionProps<'div'>, 'children'> {
+  padding?: CardPadding;
+  children?: React.ReactNode;
+}
+
+const paddingClasses: Record<CardPadding, string> = {
+  none: '',
+  sm: 'p-4',
+  md: 'p-6',
+  lg: 'p-8',
+};
+
+const Card = ({
+  children,
+  padding = 'md',
+  className = '',
+  ...props
+}: CardProps) => {
   return (
-    <div
-      className={`bg-white rounded-lg shadow-md border border-gray-200 ${className}`}
+    <motion.div
+      className={`bg-card rounded-xl shadow-md border border-border ${paddingClasses[padding]} ${className}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2 }}
       {...props}
     >
       {children}
-    </div>
+    </motion.div>
   );
 };
 
