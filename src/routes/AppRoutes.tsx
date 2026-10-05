@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import ErrorBoundary from '../components/ErrorBoundary';
 import MainLayout from '../components/layout/MainLayout';
 import Login from '../pages/auth/Login';
 import StudentHome from '../pages/student/Home';
@@ -51,12 +52,12 @@ const AppRoutes = () => {
 
             <Route path="student/home" element={<StudentHome />} />
             <Route path="review" element={<ReviewPage />} />
-            <Route path="practice" element={<PracticePage />} />
-            <Route path="mock-exams" element={<MockExamsPage />} />
+            <Route path="practice" element={<ErrorBoundary><PracticePage /></ErrorBoundary>} />
+            <Route path="mock-exams" element={<ErrorBoundary><MockExamsPage /></ErrorBoundary>} />
             <Route path="mistakes" element={<MistakesPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="achievements" element={<AchievementsPage />} />
-            <Route path="diagnostic" element={<DiagnosticPage />} />
+            <Route path="diagnostic" element={<ErrorBoundary><DiagnosticPage /></ErrorBoundary>} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="admin" element={<AdminPage />} />
 
