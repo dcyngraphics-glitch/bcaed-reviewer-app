@@ -56,6 +56,13 @@ const presetFrom = (
 
 const PRESETS: ExamPreset[] = [
   presetFrom(
+    'marathon',
+    'Marathon paper — 350 items',
+    null,
+    350,
+    'The long sit: three subtest-shaped sections sized by TOS weight (70 Gen Ed, 140 Prof Ed, 140 Specialization). The real exam is 450 items across a whole day — this is the longest single paper we can hold, not a replica of the day.',
+  ),
+  presetFrom(
     'full',
     'Full mock exam',
     null,
@@ -155,6 +162,10 @@ const MockExamsPage = () => {
           <div className="grid gap-4 sm:grid-cols-2">
             {PRESETS.map((preset) => {
               const available = questionsFor({ subjectId: preset.subjectId }).length;
+              // A preset can promise more items than the bank can supply. Saying
+              // "350 items" on a card when only 158 exist would be a lie the
+              // student discovers mid-exam, so the shortfall is shown here.
+              const short = preset.items > available;
               return (
                 <Card key={preset.id} className="p-5 flex flex-col">
                   <h2 className="font-bold text-gray-900 mb-1">{preset.name}</h2>
@@ -163,8 +174,18 @@ const MockExamsPage = () => {
                   <div className="flex flex-wrap gap-2 mb-4">
                     <Badge variant="outline">{preset.items} items</Badge>
                     <Badge variant="outline">{preset.minutes} minutes</Badge>
-                    <Badge variant="secondary">{available} in the bank</Badge>
+                    <Badge variant={short ? 'destructive' : 'secondary'}>
+                      {short ? `only ${available} available` : `${available} in the bank`}
+                    </Badge>
                   </div>
+
+                  {short ? (
+                    <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded p-2 mb-3">
+                      Your bank holds {available} approved questions, so this paper will be
+                      shorter than {preset.items}. Every item you have will be used. Clear the
+                      backlog in the draft review queue to grow it.
+                    </p>
+                  ) : null}
 
                   <Button
                     variant="primary"

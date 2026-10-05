@@ -1,6 +1,8 @@
 import type { Difficulty, Question } from '../types/content';
 import { createRng, shuffle } from './random';
-import { difficultyPlan } from '../exam';
+import { difficultyPlan, SUBTESTS } from '../exam';
+import type { SubtestId } from '../exam';
+import { SITUATIONAL_SHARE } from '../exam/composition';
 
 export interface SelectionFilter {
   subjectId?: string;
@@ -180,6 +182,106 @@ export function buildMockExam(
   return selected
     .slice(0, count)
     .sort((a, b) => a.difficulty - b.difficulty || a.id.localeCompare(b.id));
+}
+
+/**
+ * A long-form mock paper, shaped like the real sitting rather than one flat
+ * block of questions.
+ *
+ * The real LET day is 450 items: three subtests of 150, weighted 20/40/40 by
+ * TOS. A 350-item paper is therefore built as three subtest-shaped sections
+ * sized by that weight (~70/140/140), and each section is composed
+ * independently so its difficulty ramp and situational share are internally
+ * consistent.
+ *
+ * Two deliberate differences from `buildMockExam`, both forced by arithmetic:
+ *
+ * 1. A question may appear in more than one section, because 350 items cannot
+ *    be drawn from a bank of 196 without repetition. Repeats are recorded in
+ *    `repeats` so the UI can disclose them rather than let the student meet
+ *    the same item twice and assume it is a different question.
+ * 2. If the bank cannot fill the requested length at the requested ramp, the
+ *    paper is short and says so in `shortfall`. A silently truncated paper
+ *    that claims to be 350 items would be the exact defect this project has
+ *    been fixing.
+ */
+export interface LongPaperSection {
+  subtestId: SubtestId;
+  items: Question[];
+  /** Items this section wanted but the bank could not supply. */
+  shortfall: number;
+}
+
+export interface LongPaper {
+  sections: LongPaperSection[];
+  items: Question[];
+  /** What the caller asked for. */
+  requested: number;
+  /** requested - items.length, i.e. how far short the bank fell. */
+  shortfall: number;
+  /** Ids that appear in more than one section. */
+  repeats: string[];
+}
+
+const LONG_PAPER_WEIGHTS: readonly SubtestId[] = ['gened', 'profed', 'cae'];
+
+/** TOS subtest weights (20/40/40), read from the exam table so there is one source. */
+const SUBTEST_WEIGHTS: Record<SubtestId, number> = SUBTESTS.reduce(
+  (acc, s) => ({ ...acc, [s.id]: s.weight }),
+  {} as Record<SubtestId, number>,
+);
+
+/** Splits a length across the three subtests by TOS weight (20/40/40). */
+export function longPaperSectionSizes(count: number): Record<SubtestId, number> {
+  const gened = Math.round(count * SUBTEST_WEIGHTS.gened);
+  const profed = Math.round(count * SUBTEST_WEIGHTS.profed);
+  return { gened, profed, cae: count - gened - profed };
+}
+
+export function buildLongPaper(options: {
+  pool: readonly Question[];
+  count: number;
+  seed?: number;
+  situationalShare?: number;
+}): LongPaper {
+  const {
+    pool,
+    count,
+    seed = Date.now(),
+    situationalShare = SITUATIONAL_SHARE.mock,
+  } = options;
+
+  const eligibleItems = eligible(pool);
+  const sizes = longPaperSectionSizes(count);
+
+  const sections: LongPaperSection[] = LONG_PAPER_WEIGHTS.map((subtestId) => {
+    const want = sizes[subtestId];
+    const inSubject = eligibleItems.filter((q) => q.subjectId === subtestId);
+    const items = buildMockExam({
+      pool: inSubject,
+      count: want,
+      seed: seed + subtestId.length,
+      situationalShare,
+    });
+    return { subtestId, items, shortfall: Math.max(0, want - items.length) };
+  });
+
+  const items = sections.flatMap((s) => s.items);
+
+  const seen = new Set<string>();
+  const repeats = new Set<string>();
+  for (const q of items) {
+    if (seen.has(q.id)) repeats.add(q.id);
+    seen.add(q.id);
+  }
+
+  return {
+    sections,
+    items,
+    requested: count,
+    shortfall: Math.max(0, count - items.length),
+    repeats: [...repeats].sort(),
+  };
 }
 
 /** Maps a session's accuracy onto the difficulty the student should now face. */
