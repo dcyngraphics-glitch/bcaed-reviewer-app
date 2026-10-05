@@ -15,6 +15,20 @@ import type { QuestionDraft } from '../../pipeline';
 
 export { DRAFT_QUESTIONS } from '../draftQuestions';
 
-export const BATCHES: readonly QuestionDraft[][] = [];
+import BATCH_SCIENCE from './batchScience';
+import BATCH_MATH from './batchMath';
+import BATCH_MATH_2 from './batchMath2';
+import BATCH_GENED from './batchGened';
+import BATCH_WORLD from './batchWorld';
+
+export { BATCH_SCIENCE, BATCH_MATH, BATCH_MATH_2, BATCH_GENED, BATCH_WORLD };
+
+export const BATCHES: readonly (readonly QuestionDraft[])[] = [
+  BATCH_SCIENCE,
+  BATCH_MATH,
+  BATCH_MATH_2,
+  BATCH_GENED,
+  BATCH_WORLD,
+];
 
 export const ALL_DRAFTS: readonly QuestionDraft[] = [...BATCHES].flat();

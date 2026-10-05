@@ -4,6 +4,7 @@ import Badge from '../../components/Badge';
 import Button from '../../components/Button';
 import { useContent } from '../../hooks/useContent';
 import { DRAFT_QUESTIONS } from '../../data/draftQuestions';
+import { ALL_DRAFTS } from '../../data/batches';
 import { summariseDrafts, draftsByTopic, validateDraft } from '../../pipeline';
 import { DIFFICULTY_LABELS } from '../../types/content';
 
@@ -25,12 +26,13 @@ const ReviewQueuePage = () => {
   const [openTopic, setOpenTopic] = useState<string | null>(null);
   const [showOnlyProblems, setShowOnlyProblems] = useState(false);
 
-  const summary = useMemo(() => summariseDrafts(DRAFT_QUESTIONS), []);
-  const grouped = useMemo(() => draftsByTopic(DRAFT_QUESTIONS), []);
+  const allDrafts = useMemo(() => [...DRAFT_QUESTIONS, ...ALL_DRAFTS], []);
+  const summary = useMemo(() => summariseDrafts(allDrafts), []);
+  const grouped = useMemo(() => draftsByTopic(allDrafts), []);
 
   const problems = useMemo(
     () =>
-      DRAFT_QUESTIONS.map((draft) => ({ id: draft.id, issues: validateDraft(draft) })).filter(
+      allDrafts.map((draft) => ({ id: draft.id, issues: validateDraft(draft) })).filter(
         (entry) => entry.issues.length > 0,
       ),
     [],
@@ -43,8 +45,9 @@ const ReviewQueuePage = () => {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Draft review queue</h1>
         <p className="text-gray-600">
-          {summary.total} AI-drafted questions awaiting review. None of these are visible to
-          students — the engine only ever serves approved questions.
+          {summary.total} AI-drafted questions awaiting review across the original batch and
+          five written batches. None of these are visible to students — the engine
+          only ever serves approved questions.
         </p>
       </div>
 
@@ -246,7 +249,8 @@ const ReviewQueuePage = () => {
         <h2 className="text-lg font-bold text-amber-900 mb-2">How approving works</h2>
         <p className="text-sm text-amber-900 mb-3">
           Publishing a draft means moving it out of{' '}
-          <code className="font-mono">src/data/draftQuestions.ts</code> and into a live bank file.
+          <code className="font-mono">src/data/draftQuestions.ts</code> or{' '}
+          <code className="font-mono">src/data/batches/</code> and into a live bank file.
           That is a code change, and it reruns the content-integrity test suite — which is the point.
           A button that published straight into an exam, skipping that check, would be worse than no
           button at all.
