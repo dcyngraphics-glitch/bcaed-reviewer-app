@@ -50,7 +50,11 @@ const SessionPlayer = ({
   onFinishRef.current = onFinish;
 
   const total = questions.length;
-  const question = questions[index];
+  // The index is clamped rather than trusted: a parent can hand down a shorter
+  // question set mid-session (a new seed, a changed filter), and reading
+  // questions[index] unguarded crashed the whole tree.
+  const safeIndex = total === 0 ? 0 : Math.min(index, total - 1);
+  const question = questions[safeIndex];
   const chosen = question ? answers[question.id] : undefined;
   const remaining = secondsRemaining(timeLimitSeconds, elapsed);
 
@@ -107,8 +111,8 @@ const SessionPlayer = ({
   };
 
   const next = () => {
-    if (index < total - 1) {
-      setIndex((i) => i + 1);
+    if (safeIndex < total - 1) {
+      setIndex(safeIndex + 1);
     } else {
       finish(collected);
     }
@@ -173,14 +177,14 @@ const SessionPlayer = ({
       <div>
         <div className="flex justify-between text-xs text-gray-500 mb-1">
           <span>
-            Question {index + 1} of {total}
+            Question {safeIndex + 1} of {total}
           </span>
           <span>{answeredCount} answered</span>
         </div>
         <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
           <div
             className="h-1.5 bg-primary-600 rounded-full transition-all duration-300"
-            style={{ width: `${((index + 1) / total) * 100}%` }}
+            style={{ width: `${((safeIndex + 1) / total) * 100}%` }}
           />
         </div>
       </div>
@@ -267,7 +271,7 @@ const SessionPlayer = ({
 
       {/* Controls */}
       <div className="flex items-center justify-between gap-3">
-        <Button variant="outline" onClick={previous} disabled={index === 0}>
+        <Button variant="outline" onClick={previous} disabled={safeIndex === 0}>
           Previous
         </Button>
 
@@ -279,7 +283,7 @@ const SessionPlayer = ({
           ) : null}
 
           <Button variant="primary" onClick={next} disabled={submitted}>
-            {index === total - 1 ? 'Finish' : 'Next'}
+            {safeIndex === total - 1 ? 'Finish' : 'Next'}
           </Button>
         </div>
       </div>
