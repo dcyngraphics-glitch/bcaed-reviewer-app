@@ -483,7 +483,6 @@ export const BATCH_MATH: readonly QuestionDraft[] = [
     rationale: 'Solving a one-variable linear equation by inverse operations and verifying by substitution.',
     source: 'Algebra; PRC GenEd TOS — Mathematics',
   },
-  // --- CONTINUED ---
 ];
 
 export default BATCH_MATH;
