@@ -31,10 +31,10 @@ const Toast = ({
 
   const variantClasses: Record<ToastVariant, string> = {
     default: 'bg-primary-600 text-primary-50',
-    success: 'bg-green-600 text-green-50',
-    warning: 'bg-yellow-600 text-yellow-50',
-    error: 'bg-red-600 text-red-50',
-    info: 'bg-blue-600 text-blue-50',
+    success: 'bg-success-600 text-success-50',
+    warning: 'bg-warning-600 text-warning-50',
+    error: 'bg-error-600 text-error-50',
+    info: 'bg-info-600 text-info-50',
   };
 
   const positionClasses: Record<ToastPosition, string> = {
