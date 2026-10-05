@@ -6,7 +6,7 @@
 /** Seconds left, or null when the session has no time limit. */
 export function secondsRemaining(limitSeconds: number | null, elapsedSeconds: number): number | null {
   if (limitSeconds === null) return null;
-  return Math.max(0, Math.floor(limitSeconds - elapsedSeconds));
+  return Math.max(0, Math.floor(limitSeconds - Math.max(0, elapsedSeconds)));
 }
 
 /** True the instant the clock reaches the limit, so the exam auto-submits. */
@@ -35,11 +35,11 @@ export function timerColourClass(
 ): string {
   const remaining = secondsRemaining(limitSeconds, elapsedSeconds);
   if (remaining === null || limitSeconds === null || limitSeconds === 0) {
-    return 'text-gray-600';
+    return 'text-muted-foreground';
   }
 
   const ratio = remaining / limitSeconds;
-  if (remaining <= 60) return 'text-red-600';
-  if (ratio <= 0.25) return 'text-amber-600';
-  return 'text-gray-600';
+  if (remaining <= 60) return 'text-error-600';
+  if (ratio <= 0.25) return 'text-warning-600';
+  return 'text-muted-foreground';
 }
