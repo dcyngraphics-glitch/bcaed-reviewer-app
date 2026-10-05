@@ -1,5 +1,6 @@
 import type { Difficulty, Question } from '../types/content';
 import { createRng, shuffle } from './random';
+import { difficultyPlan } from '../exam';
 
 export interface SelectionFilter {
   subjectId?: string;
@@ -91,9 +92,18 @@ export function selectQuestions({
  * A mock exam is a fixed paper: rising difficulty, no repeats, and the hardest
  * questions land at the end so the exam ramps like the real LET.
  *
- * When `situationalShare` is set, the paper is composed to hit that share of
- * vignette-style items — mock exams use a high share because that is what exam
- * day looks like, while practice keeps a graded ramp.
+ * The paper is composed in two dimensions at once, because getting one right
+ * does not get the other right:
+ *
+ *  - **Difficulty bands** follow PRC's own TOS mix (30% easy, 50% moderate,
+ *    20% difficult). An earlier version computed this quota and then never used
+ *    it in the situational branch, so a 60-item paper came out 72% difficult
+ *    against a 20% spec.
+ *  - **Style** follows `situationalShare`. Mock exams use a high share because
+ *    that is what exam day looks like; practice keeps a graded ramp.
+ *
+ * Each band's quota is split by style, so situational items are spread across
+ * the whole paper rather than piling into the hard band.
  */
 export function buildMockExam(
   options: Omit<SelectionOptions, 'targetDifficulty'> & { situationalShare?: number },
@@ -105,53 +115,66 @@ export function buildMockExam(
   if (candidates.length === 0) return [];
 
   const rng = createRng(seed);
+  const quota = difficultyPlan(count);
 
-  // Split the pool by style when a share is requested, so the paper can be
-  // composed deliberately rather than hoping the shuffle produces the mix.
-  const drawFrom = (items: Question[], take: number): Question[] =>
-    shuffle(items, rng).slice(0, Math.max(0, take));
+  const bands: { difficulty: Difficulty[]; take: number }[] = [
+    { difficulty: [1, 2], take: quota.easy },
+    { difficulty: [3, 4], take: quota.moderate },
+    { difficulty: [5], take: quota.difficult },
+  ];
 
-  let selected: Question[] = [];
+  const selected: Question[] = [];
+  const used = new Set<string>();
 
-  if (situationalShare !== undefined) {
-    const situationalPool = candidates.filter((q) => q.situational);
-    const straightPool = candidates.filter((q) => !q.situational);
+  for (const band of bands) {
+    if (band.take <= 0) continue;
 
-    const wantedSituational = Math.round(count * situationalShare);
-    const situational = drawFrom(situationalPool, wantedSituational);
-    const straight = drawFrom(straightPool, count - situational.length);
+    const inBand = shuffle(
+      candidates.filter((q) => band.difficulty.includes(q.difficulty)),
+      rng,
+    );
 
-    selected = [...situational, ...straight];
-
-    // If either pool was too thin, top up from whatever is left.
-    if (selected.length < count) {
-      const used = new Set(selected.map((q) => q.id));
-      const leftovers = shuffle(
-        candidates.filter((q) => !used.has(q.id)),
-        rng,
-      );
-      selected.push(...leftovers.slice(0, count - selected.length));
-    }
-  } else {
-    // No style target: draw fairly from each difficulty band, then order.
-    const perBand = Math.max(1, Math.ceil(count / LADDER.length));
-    for (const level of LADDER) {
-      if (selected.length >= count) break;
-      const band = shuffle(
-        candidates.filter((q) => q.difficulty === level),
-        rng,
-      );
-      selected.push(...band.slice(0, perBand));
+    if (situationalShare === undefined) {
+      for (const q of inBand.slice(0, band.take)) {
+        selected.push(q);
+        used.add(q.id);
+      }
+      continue;
     }
 
-    if (selected.length < count) {
-      const used = new Set(selected.map((q) => q.id));
-      const leftovers = shuffle(
-        candidates.filter((q) => !used.has(q.id)),
-        rng,
-      );
-      selected.push(...leftovers.slice(0, count - selected.length));
+    // Split this band's quota by style. The share applies within every band, so
+    // an 80% situational paper still has easy situational items.
+    const wantedSituational = Math.round(band.take * situationalShare);
+    const situational = inBand.filter((q) => q.situational);
+    const straight = inBand.filter((q) => !q.situational);
+
+    const picked: Question[] = [
+      ...situational.slice(0, wantedSituational),
+      ...straight.slice(0, band.take - Math.min(wantedSituational, situational.length)),
+    ];
+
+    // If either style was short inside this band, top up from the other.
+    if (picked.length < band.take) {
+      const taken = new Set(picked.map((q) => q.id));
+      const remainder = inBand.filter((q) => !taken.has(q.id));
+      picked.push(...remainder.slice(0, band.take - picked.length));
     }
+
+    for (const q of picked) {
+      selected.push(q);
+      used.add(q.id);
+    }
+  }
+
+  // If a band could not fill its quota, top up from anything left so the paper
+  // still reaches the requested length. The shortfall is reported separately by
+  // compositionShortfall rather than hidden here.
+  if (selected.length < count) {
+    const leftovers = shuffle(
+      candidates.filter((q) => !used.has(q.id)),
+      rng,
+    );
+    selected.push(...leftovers.slice(0, count - selected.length));
   }
 
   return selected
