@@ -2,7 +2,10 @@
 
 **Last updated:** 2026-10-05
 **Repo:** `Projects/bcaed-reviewer-app`
-**Verification:** `tsc -p tsconfig.json --noEmit` clean, `vitest run` 182 passing, `vite build` clean.
+**Verification:** `tsc -p tsconfig.json --noEmit` clean, `vitest run` 243 passing, `vite build` clean.
+
+**Reference:** `docs/LET-EXAM-FACTS.md` (the real exam, sourced) ·
+`docs/BLOCKED-NEEDS-BACKEND.md` (what needs a server and why)
 
 ---
 
@@ -99,10 +102,14 @@ against. Nothing was copied from another reviewer.
 ### Content
 - Subject → Topic → Lesson → Question model, admin-editable by design.
 - 11 written lessons with key points.
-- 55 original multiple-choice questions spanning all three subjects, all five
-  CAE areas, and all five difficulty levels. A content-integrity test suite
-  fails the build on a fifth option, a bad index, a subject/topic mismatch, a
-  missing source or a missing explanation.
+- **135 original multiple-choice questions** spanning all three subjects, every
+  TOS topic, and all five difficulty levels. A content-integrity test suite fails
+  the build on a fifth option, a bad index, a subject/topic mismatch, a missing
+  source or a missing explanation.
+- **46 situational items** in the real exam's shape: a vignette, then the
+  question as the final sentence, with the discriminating detail buried
+  mid-choice so the opening cannot be pattern-matched. See
+  `docs/LET-EXAM-FACTS.md`.
 
 ### Screens
 - **Home** — week, phase, today's mission, accuracy, streak, XP/level, badges,
@@ -136,7 +143,9 @@ against. Nothing was copied from another reviewer.
 
 ## Not done — needs a backend
 
-These are listed so nothing looks finished when it is not.
+These are listed so nothing looks finished when it is not. Full detail, including
+what each one needs and the recommended order, is in
+`docs/BLOCKED-NEEDS-BACKEND.md`.
 
 | Feature | Why it is blocked |
 | --- | --- |
