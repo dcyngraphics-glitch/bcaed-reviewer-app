@@ -1,17 +1,18 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider, RequireAuth, RedirectIfAuthenticated } from '../auth';
+import { ProfileProvider } from '../../context/ProfileContext';
 import MainLayout from '../../components/layout/MainLayout';
 import Login from '../../pages/auth/Login';
 import StudentHome from '../../pages/student/Home';
 import NotFound from '../../pages/NotFound';
+import { typeInto, clickButton } from '../../test/interact';
 
 /**
- * Mirrors AppRoutes' tree in a MemoryRouter so we can assert the routing and
- * auth behaviour that the old suite never touched. The previous suite only
- * imported leaf components, so a completely broken app still went green.
+ * Mirrors AppRoutes' tree in a MemoryRouter so the routing and auth behaviour
+ * can be asserted directly. A suite that only imports leaf components goes
+ * green even when no protected route matches.
  */
 const RoutesUnderTest = () => (
   <AuthProvider>
@@ -28,7 +29,9 @@ const RoutesUnderTest = () => (
         <Route
           element={
             <RequireAuth>
-              <MainLayout />
+              <ProfileProvider name="Test Student" startDate="2026-10-05">
+                <MainLayout />
+              </ProfileProvider>
             </RequireAuth>
           }
         >
@@ -52,31 +55,24 @@ describe('routing and auth', () => {
   });
 
   test('unauthenticated visitor is bounced to the login screen', () => {
-    // RequireAuth previously read a localStorage flag that nothing ever set,
-    // so this was an infinite redirect loop.
     render(goto('/student/home'));
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument();
   });
 
   test('signing in reaches the dashboard', async () => {
-    // The form fields are `required`, so submitting needs real input first.
-    const user = userEvent.setup();
     render(goto('/student/home'));
 
-    await user.type(screen.getByLabelText(/email address/i), 'juan@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'hunter2');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await screen.findByLabelText(/your name/i);
+    typeInto(screen, /your name/i, 'Juan Dela Cruz');
+    await clickButton(screen, /continue/i);
 
     expect(await screen.findByText(/welcome back/i)).toBeInTheDocument();
     expect(window.localStorage.getItem('isAuthenticated')).toBe('true');
   });
 
-  test('the nested layout route actually renders its child', async () => {
-    // The old tree nested <Routes> inside a pathless layout <Route>, so no
-    // protected route ever matched and React Router warned at runtime.
+  test('the layout route actually renders its child', async () => {
     window.localStorage.setItem('isAuthenticated', 'true');
     render(goto('/student/home'));
-
     expect(await screen.findByText(/welcome back/i)).toBeInTheDocument();
   });
 
@@ -91,13 +87,12 @@ describe('routing and auth', () => {
 
   test('signing out returns to login', async () => {
     window.localStorage.setItem('isAuthenticated', 'true');
-    const user = userEvent.setup();
     render(goto('/student/home'));
 
     await screen.findByText(/welcome back/i);
-    await user.click(screen.getByRole('button', { name: /sign out/i }));
+    await clickButton(screen, /sign out/i);
 
-    expect(await screen.findByRole('button', { name: /sign in/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /continue/i })).toBeInTheDocument();
   });
 
   test('unknown URLs show a 404, not a login bounce', () => {

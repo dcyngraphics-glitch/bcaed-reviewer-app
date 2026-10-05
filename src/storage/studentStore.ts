@@ -1,4 +1,4 @@
-import type { SessionResult, SessionMode, AnswerRecord, TopicPerformance } from '../engine/scoring';
+import type { SessionResult, SessionMode, AnswerRecord, TopicPerformance, SubjectPerformance } from '../engine/scoring';
 import { gradeSession } from '../engine/scoring';
 import { calculateStreak } from '../engine/progress';
 import { nextTargetDifficulty } from '../engine/selection';
@@ -24,7 +24,7 @@ export interface SessionRecord {
    * being guessed back from the mistake list.
    */
   byTopic: TopicPerformance[];
-  bySubject: TopicPerformance[];
+  bySubject: SubjectPerformance[];
 }
 
 export interface MistakeRecord extends AnswerRecord {
@@ -98,7 +98,7 @@ function normalise(raw: unknown, seed: ProfileSeed): StudentProfile {
     sessions: arr<SessionRecord>(value.sessions).map((session) => ({
       ...session,
       byTopic: arr<TopicPerformance>((session as Partial<SessionRecord>)?.byTopic),
-      bySubject: arr<TopicPerformance>((session as Partial<SessionRecord>)?.bySubject),
+      bySubject: arr<SubjectPerformance>((session as Partial<SessionRecord>)?.bySubject),
     })),
     mistakes: arr<MistakeRecord>(value.mistakes),
     badges: arr<string>(value.badges),
@@ -135,10 +135,6 @@ export function saveProfile(profile: StudentProfile): boolean {
     // Quota exceeded or storage disabled — the in-memory state still works.
     return false;
   }
-}
-
-function makeId(date: string, index: number): string {
-  return `${date}#${index}`;
 }
 
 export interface RecordOptions {
@@ -245,11 +241,11 @@ export interface StatsContext {
 export type FullStats = StudentStats & {
   accuracy: number;
   byTopic: TopicPerformance[];
-  bySubject: TopicPerformance[];
+  bySubject: SubjectPerformance[];
   studyMinutes: number;
 };
 
-function sumPerformance(records: readonly TopicPerformance[]): TopicPerformance[] {
+function sumTopics(records: readonly TopicPerformance[]): TopicPerformance[] {
   const buckets = new Map<string, { attempted: number; correct: number }>();
 
   for (const record of records) {
@@ -261,6 +257,24 @@ function sumPerformance(records: readonly TopicPerformance[]): TopicPerformance[
 
   return [...buckets.entries()].map(([topicId, { attempted, correct }]) => ({
     topicId,
+    attempted,
+    correct,
+    accuracy: attempted > 0 ? Math.round((correct / attempted) * 100) : 0,
+  }));
+}
+
+function sumSubjects(records: readonly SubjectPerformance[]): SubjectPerformance[] {
+  const buckets = new Map<string, { attempted: number; correct: number }>();
+
+  for (const record of records) {
+    const bucket = buckets.get(record.subjectId) ?? { attempted: 0, correct: 0 };
+    bucket.attempted += record.attempted;
+    bucket.correct += record.correct;
+    buckets.set(record.subjectId, bucket);
+  }
+
+  return [...buckets.entries()].map(([subjectId, { attempted, correct }]) => ({
+    subjectId,
     attempted,
     correct,
     accuracy: attempted > 0 ? Math.round((correct / attempted) * 100) : 0,
@@ -293,8 +307,8 @@ export function computeStats(profile: StudentProfile, context: StatsContext): Fu
     week: context.week,
     readiness: context.readiness,
     accuracy: totals.questions > 0 ? Math.round((totals.correct / totals.questions) * 100) : 0,
-    byTopic: sumPerformance(profile.sessions.flatMap((s) => s.byTopic)),
-    bySubject: sumPerformance(profile.sessions.flatMap((s) => s.bySubject)),
+    byTopic: sumTopics(profile.sessions.flatMap((s) => s.byTopic)),
+    bySubject: sumSubjects(profile.sessions.flatMap((s) => s.bySubject)),
     studyMinutes: Math.round(profile.totalStudySeconds / 60),
   };
 }

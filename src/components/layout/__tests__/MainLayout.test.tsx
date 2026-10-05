@@ -1,23 +1,21 @@
 import { describe, test, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { AuthProvider } from '../../../routes/auth';
+import { Route, Routes } from 'react-router-dom';
 import MainLayout from '../MainLayout';
+import { renderWithProviders } from '../../../test/renderWithProviders';
 
 // MainLayout renders <Outlet />, so it must be exercised as a layout route
 // inside a router. The old test passed children directly, which can no longer
 // reach the component.
 const renderLayout = () =>
   render(
-    <AuthProvider>
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route element={<MainLayout />}>
-            <Route index element={<div data-testid="test-content">Test Content</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    </AuthProvider>,
+    renderWithProviders(
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route index element={<div data-testid="test-content">Test Content</div>} />
+        </Route>
+      </Routes>,
+    ),
   );
 
 describe('MainLayout Component', () => {
@@ -34,6 +32,6 @@ describe('MainLayout Component', () => {
 
   test('renders the sidebar navigation', () => {
     renderLayout();
-    expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /home/i })).toBeInTheDocument();
   });
 });

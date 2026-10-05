@@ -1,17 +1,26 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import Login from '../pages/auth/Login';
-import QuizPage from '../pages/quiz/QuizPage';
 import StudentHome from '../pages/student/Home';
+import ReviewPage from '../pages/review/ReviewPage';
+import PracticePage from '../pages/practice/PracticePage';
+import MockExamsPage from '../pages/mock-exams/MockExamsPage';
+import MistakesPage from '../pages/mistakes/MistakesPage';
+import ProgressPage from '../pages/progress/ProgressPage';
+import AchievementsPage from '../pages/achievements/AchievementsPage';
+import DiagnosticPage from '../pages/diagnostic/DiagnosticPage';
+import ProfilePage from '../pages/profile/ProfilePage';
+import AdminPage from '../pages/admin/AdminPage';
 import NotFound from '../pages/NotFound';
 import { AuthProvider, RedirectIfAuthenticated, RequireAuth } from './auth';
+import { ProfileProvider } from '../context/ProfileContext';
 
 /**
- * Single flat route tree. The previous version nested <Routes> inside a
- * pathless layout <Route> with absolute child paths, so no protected route ever
- * matched and React Router warned about it at runtime.
+ * Single flat route tree. MainLayout is a layout route that renders <Outlet />,
+ * so it supplies one Header/Footer for every protected page.
  *
- * MainLayout renders <Outlet /> and supplies its own Header/Footer.
+ * ProfileProvider sits inside AuthProvider (it is per-student state) and wraps
+ * the protected tree, so every page reads the same profile and stats.
  */
 const AppRoutes = () => {
   return (
@@ -28,17 +37,31 @@ const AppRoutes = () => {
             }
           />
 
-          {/* Protected: MainLayout is the layout route, children come via Outlet */}
+          {/* Protected */}
           <Route
             element={
               <RequireAuth>
-                <MainLayout />
+                <ProfileProvider>
+                  <MainLayout />
+                </ProfileProvider>
               </RequireAuth>
             }
           >
             <Route index element={<Navigate to="/student/home" replace />} />
+
             <Route path="student/home" element={<StudentHome />} />
-            <Route path="quiz" element={<QuizPage />} />
+            <Route path="review" element={<ReviewPage />} />
+            <Route path="practice" element={<PracticePage />} />
+            <Route path="mock-exams" element={<MockExamsPage />} />
+            <Route path="mistakes" element={<MistakesPage />} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="achievements" element={<AchievementsPage />} />
+            <Route path="diagnostic" element={<DiagnosticPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="admin" element={<AdminPage />} />
+
+            {/* Old path kept alive so a bookmark or an old link still lands. */}
+            <Route path="quiz" element={<Navigate to="/practice" replace />} />
           </Route>
 
           {/* Unknown URL: 404 rather than a bounce back to /login */}

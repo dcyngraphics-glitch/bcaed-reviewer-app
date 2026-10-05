@@ -12,18 +12,18 @@ export interface AnswerRecord {
   correctIndex: number;
 }
 
-export interface TopicPerformance {
-  topicId: string;
+export interface PerformanceRow {
   attempted: number;
   correct: number;
   accuracy: number;
 }
 
-export interface SubjectPerformance {
+export interface TopicPerformance extends PerformanceRow {
+  topicId: string;
+}
+
+export interface SubjectPerformance extends PerformanceRow {
   subjectId: string;
-  attempted: number;
-  correct: number;
-  accuracy: number;
 }
 
 export interface SessionResult {
@@ -56,27 +56,29 @@ function round(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-function groupBy<T extends AnswerRecord>(
+function groupBy<K extends 'topicId' | 'subjectId'>(
   answers: readonly AnswerRecord[],
-  key: (a: AnswerRecord) => string,
-  idField: 'topicId' | 'subjectId',
-): T[] {
+  idField: K,
+): (PerformanceRow & Record<K, string>)[] {
   const buckets = new Map<string, { attempted: number; correct: number }>();
 
   for (const answer of answers) {
-    const k = key(answer);
-    const bucket = buckets.get(k) ?? { attempted: 0, correct: 0 };
+    const key = answer[idField];
+    const bucket = buckets.get(key) ?? { attempted: 0, correct: 0 };
     bucket.attempted += 1;
     if (answer.chosenIndex === answer.correctIndex) bucket.correct += 1;
-    buckets.set(k, bucket);
+    buckets.set(key, bucket);
   }
 
-  return [...buckets.entries()].map(([id, { attempted, correct }]) => ({
-    [idField]: id,
-    attempted,
-    correct,
-    accuracy: attempted > 0 ? round((correct / attempted) * 100) : 0,
-  })) as T[];
+  return [...buckets.entries()].map(([id, { attempted, correct }]) => {
+    const row: PerformanceRow & Record<string, unknown> = {
+      attempted,
+      correct,
+      accuracy: attempted > 0 ? round((correct / attempted) * 100) : 0,
+    };
+    row[idField] = id;
+    return row as unknown as PerformanceRow & Record<K, string>;
+  });
 }
 
 /**
@@ -135,7 +137,7 @@ export function gradeSession(
     xpEarned,
     perfect,
     mistakes,
-    byTopic: groupBy<TopicPerformance>(answers, (a) => a.topicId, 'topicId'),
-    bySubject: groupBy<SubjectPerformance>(answers, (a) => a.subjectId, 'subjectId'),
+    byTopic: groupBy(answers, 'topicId'),
+    bySubject: groupBy(answers, 'subjectId'),
   };
 }
