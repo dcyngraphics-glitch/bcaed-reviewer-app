@@ -20,8 +20,20 @@ import BATCH_MATH from './batchMath';
 import BATCH_MATH_2 from './batchMath2';
 import BATCH_GENED from './batchGened';
 import BATCH_WORLD from './batchWorld';
+import BATCH_PROFED_1 from './batchProfEd1';
+import BATCH_PROFED_2 from './batchProfEd2';
+import BATCH_CAE from './batchCAE';
 
-export { BATCH_SCIENCE, BATCH_MATH, BATCH_MATH_2, BATCH_GENED, BATCH_WORLD };
+export {
+  BATCH_SCIENCE,
+  BATCH_MATH,
+  BATCH_MATH_2,
+  BATCH_GENED,
+  BATCH_WORLD,
+  BATCH_PROFED_1,
+  BATCH_PROFED_2,
+  BATCH_CAE,
+};
 
 export const BATCHES: readonly (readonly QuestionDraft[])[] = [
   BATCH_SCIENCE,
@@ -29,6 +41,9 @@ export const BATCHES: readonly (readonly QuestionDraft[])[] = [
   BATCH_MATH_2,
   BATCH_GENED,
   BATCH_WORLD,
+  BATCH_PROFED_1,
+  BATCH_PROFED_2,
+  BATCH_CAE,
 ];
 
 export const ALL_DRAFTS: readonly QuestionDraft[] = [...BATCHES].flat();

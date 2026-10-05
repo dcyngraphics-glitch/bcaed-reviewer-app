@@ -77,19 +77,19 @@ describe('bank growth after the batches', () => {
     expect(gened(after).items).toHaveLength(70);
   });
 
-  test('the remaining shortfall is now dominated by ProfEd and CAE, not GenEd', () => {
-    // This is the honest description of where the bank still stands, and it is
-    // the specification for the next batch of writing: ProfEd and CAE need
-    // roughly 130 more items between them before a 350-item paper is fillable.
+  test('the remaining shortfall is ProfEd and CAE only, and it is now measured', () => {
+    // GenEd is full. After the ProfEd/CAE batches the shortfall is ProfEd 48 and
+    // CAE 31, so 79 more items in those two subjects would make the 350-item
+    // paper fully fillable. The earlier thresholds here said ">50" and ">40",
+    // which described the position before those batches existed.
     const paper = buildLongPaper({ pool: withAllDraftsApproved(), count: 350, seed: 1 });
     const bySubject = Object.fromEntries(
       paper.sections.map((s) => [s.subtestId, s.shortfall]),
     );
 
     expect(bySubject.gened).toBe(0);
-    expect(bySubject.profed).toBeGreaterThan(50);
-    expect(bySubject.cae).toBeGreaterThan(40);
-    expect(bySubject.profed + bySubject.cae).toBeGreaterThanOrEqual(120);
+    expect(bySubject.profed).toBe(48);
+    expect(bySubject.cae).toBe(31);
   });
 
   test('the 350-item paper still reports a shortfall rather than overclaiming', () => {
