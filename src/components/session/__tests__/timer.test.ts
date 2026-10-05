@@ -55,19 +55,19 @@ describe('formatClock', () => {
 describe('timerColourClass', () => {
   test('is neutral with plenty of time left', () => {
     // limit 1200s, only 100s elapsed.
-    expect(timerColourClass(1200, 100)).toContain('gray');
+    expect(timerColourClass(1200, 100)).toContain('muted-foreground');
   });
 
   test('warns in the final quarter', () => {
     // limit 1200s, 950s elapsed -> 250s left, inside the last quarter.
-    expect(timerColourClass(1200, 950)).toContain('amber');
+    expect(timerColourClass(1200, 950)).toContain('warning-600');
   });
 
   test('alerts in the final minute', () => {
-    expect(timerColourClass(1200, 1155)).toContain('red');
+    expect(timerColourClass(1200, 1155)).toContain('error-600');
   });
 
   test('is neutral for an untimed session', () => {
-    expect(timerColourClass(null, 600)).toContain('gray');
+    expect(timerColourClass(null, 600)).toContain('muted-foreground');
   });
 });
