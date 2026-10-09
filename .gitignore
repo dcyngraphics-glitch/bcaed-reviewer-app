@@ -26,3 +26,27 @@ Thumbs.db
 
 # The user's own reviewer materials — never commit third-party content
 reviewers/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Added for bcaed-reviewer-app shipping
+# Screenshots
+*-screenshot.png
+
+# Probe and temporary files
+probe*.ts
+probe*_*.ts
+m.questionId
+*_20261006.ts
+*_v2.ts
+*.bak
+
+# Python scripts
+src/data/build_block.py
+src/data/fix_ids.py
+src/data/generate_new_questions.py
+src/data/newQuestions_block.txt
+
+# Lib directory
+src/lib/
